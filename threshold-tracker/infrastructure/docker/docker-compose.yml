@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: thresholdtracker-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: threshold_user
+      POSTGRES_PASSWORD: threshold_password
+      POSTGRES_DB: thresholdtracker
+    ports:
+      - "5432:5432"
+    volumes:
+      - thresholdtracker_pgdata:/var/lib/postgresql/data
+
+volumes:
+  thresholdtracker_pgdata:
+    driver: local
+
