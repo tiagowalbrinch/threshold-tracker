@@ -1,0 +1,38 @@
+<section class="task-details">
+  <app-header />
+  <div class="task-details-content">
+    <p-button
+      label="Voltar"
+      icon="pi pi-arrow-left"
+      variant="text"
+      [routerLink]="['/dashboard']"
+      styleClass="back-btn"
+    />
+    @if (task(); as t) {
+      <p-card styleClass="details-card">
+        <div class="details-header">
+          <h1 class="details-title">{{ t.name }}</h1>
+          <p-tag [value]="t.type" [severity]="typeSeverity()" />
+        </div>
+        <div class="details-stats">
+          <div class="stat-item">
+            <span class="stat-label"><i class="pi pi-trophy"></i> Personal Best</span>
+            <span class="stat-value">{{ t.pb | number:'1.0-0' }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label"><i class="pi pi-flag"></i> Threshold</span>
+            <span class="stat-value">{{ t.threshold ? (t.threshold | number:'1.0-0') : '—' }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label"><i class="pi pi-sync"></i> Attempts</span>
+            <span class="stat-value">{{ t.attempts }}</span>
+          </div>
+        </div>
+      </p-card>
+    } @else {
+      <p-card>
+        <p class="not-found">Task não encontrada.</p>
+      </p-card>
+    }
+  </div>
+</section>

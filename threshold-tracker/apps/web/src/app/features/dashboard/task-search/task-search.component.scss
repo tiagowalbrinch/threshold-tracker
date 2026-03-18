@@ -1,0 +1,10 @@
+// p-iconfield styled via PrimeNG theme tokens defined in styles.scss
+
+:host {
+  display: block;
+
+  p-iconfield {
+    width: 100%;
+    max-width: 350px;
+  }
+}

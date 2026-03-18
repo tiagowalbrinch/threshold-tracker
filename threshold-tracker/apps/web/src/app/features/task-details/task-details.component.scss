@@ -1,0 +1,64 @@
+.task-details {
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text);
+
+  .task-details-content {
+    padding: 1.5rem 2rem 2rem;
+  }
+}
+
+::ng-deep .details-card {
+  background: var(--color-card) !important;
+  border-color: var(--color-card) !important;
+  margin-top: 1rem;
+
+  .p-card-body { padding: 1.75rem; }
+}
+
+.details-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.details-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.details-stats {
+  display: flex;
+  gap: 3rem;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.stat-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.not-found {
+  color: var(--color-muted);
+  text-align: center;
+  padding: 2rem 0;
+}

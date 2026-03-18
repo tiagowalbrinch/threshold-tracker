@@ -1,0 +1,21 @@
+<section class="dashboard">
+  <app-header />
+  <div class="dashboard-content">
+    <div class="dashboard-title">
+      <h1>Suas Tasks</h1>
+      <p>Acompanhe suas pontuações e determine seu threshold em cada task</p>
+    </div>
+    <div class="dashboard-controls">
+      <app-task-search (searchChange)="searchTerm.set($event)" />
+      <div class="dashboard-actions">
+        <app-task-filter (filter)="filterType.set($event)" />
+        <p-button label="Nova Task" icon="pi pi-plus" />
+      </div>
+    </div>
+    <div class="task-grid">
+      @for (task of filteredTasks(); track task.id) {
+        <app-task-card [task]="task" />
+      }
+    </div>
+  </div>
+</section>

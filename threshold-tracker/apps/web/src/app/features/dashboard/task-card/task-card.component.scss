@@ -1,0 +1,79 @@
+:host {
+  display: block;
+}
+
+// Override PrimeNG card to match dark theme
+::ng-deep .task-card {
+  background: var(--color-card) !important;
+  border-color: var(--color-card) !important;
+
+  &.task-card--clicking  { border-top: 3px solid var(--color-accent); }
+  &.task-card--flicking  { border-top: 3px solid var(--color-primary); }
+  &.task-card--tracking  { border-top: 3px solid var(--color-secondary); }
+  &.task-card--switching { border-top: 3px solid #fbbf24; }
+
+  .p-card-body { padding: 1.25rem; }
+
+  .task-progress {
+    margin-top: 0.25rem;
+    height: 6px;
+    border-radius: 3px;
+
+    .p-progressbar-value { background: var(--color-primary); }
+  }
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.attempts {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.task-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+  color: var(--color-text);
+}
+
+.task-stats {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+
+  .label {
+    font-size: 0.72rem;
+    color: var(--color-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .value {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--color-text);
+
+    &.muted { color: var(--color-muted); }
+  }
+}
+
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
