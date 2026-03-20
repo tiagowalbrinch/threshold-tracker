@@ -1,21 +1,89 @@
-<section class="dashboard">
-  <app-header />
-  <div class="dashboard-content">
-    <div class="dashboard-title">
-      <h1>Suas Tasks</h1>
-      <p>Acompanhe suas pontuações e determine seu threshold em cada task</p>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+
+  <!-- Hero -->
+  <div class="mb-10">
+    <h1 class="text-3xl sm:text-4xl font-bold text-white mb-2">Suas Tasks</h1>
+    <p class="text-white/40 text-sm">Acompanhe suas pontuações e determine seu threshold em cada task</p>
+  </div>
+
+  <!-- Controls -->
+  <div class="flex flex-col sm:flex-row gap-3 mb-8">
+    <div class="relative flex-1">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20"
+        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input [value]="search()" (input)="search.set($any($event.target).value)"
+        placeholder="Buscar task..."
+        class="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/20 outline-none focus:border-white/20" />
     </div>
-    <div class="dashboard-controls">
-      <app-task-search (searchChange)="searchTerm.set($event)" />
-      <div class="dashboard-actions">
-        <app-task-filter (filter)="filterType.set($event)" />
-        <p-button label="Nova Task" icon="pi pi-plus" />
-      </div>
-    </div>
-    <div class="task-grid">
-      @for (task of filteredTasks(); track task.id) {
-        <app-task-card [task]="task" />
+
+    <div class="flex gap-2 overflow-x-auto pb-1">
+      @for (cat of categories; track cat) {
+        <button (click)="filterCategory.set(cat)"
+          class="px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors"
+          [ngClass]="filterCategory() === cat ? 'bg-violet-600 text-white' : 'bg-white/5 text-white/40 hover:text-white/60'">
+          {{ categoryLabel(cat) }}
+        </button>
       }
     </div>
+
+    <button (click)="showAddTask.set(true)"
+      class="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg font-medium transition-colors shrink-0">
+      + Nova Task
+    </button>
   </div>
-</section>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (i of [1,2,3]; track i) {
+        <div class="bg-white/[0.03] rounded-2xl p-5 h-48 animate-pulse border border-white/5"></div>
+      }
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!loading() && filteredTasks().length === 0) {
+    <div class="flex flex-col items-center justify-center py-24 text-center">
+      <div class="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-white/10" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/>
+          <line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/>
+          <line x1="12" y1="22" x2="12" y2="18"/>
+        </svg>
+      </div>
+      <h3 class="text-white/50 font-medium mb-1">
+        {{ tasks().length === 0 ? 'Nenhuma task criada' : 'Nenhum resultado' }}
+      </h3>
+      <p class="text-white/20 text-sm mb-6">
+        {{ tasks().length === 0 ? 'Crie sua primeira task para começar a acompanhar seu progresso' : 'Tente alterar os filtros de busca' }}
+      </p>
+      @if (tasks().length === 0) {
+        <button (click)="showAddTask.set(true)"
+          class="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg font-medium">
+          + Criar primeira task
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Task Grid -->
+  @if (!loading() && filteredTasks().length > 0) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (task of filteredTasks(); track task.id) {
+        <app-task-card [task]="task" [scoreCount]="getScoreCount(task.id)"></app-task-card>
+      }
+    </div>
+  }
+
+  <!-- Add Task Modal -->
+  @if (showAddTask()) {
+    <app-add-task-dialog
+      (close)="showAddTask.set(false)"
+      (save)="onTaskCreated($event)">
+    </app-add-task-dialog>
+  }
+</div>

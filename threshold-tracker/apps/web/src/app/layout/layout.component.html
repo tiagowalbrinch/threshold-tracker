@@ -1,0 +1,63 @@
+<div class="min-h-screen bg-[#08080d] text-white">
+
+  <!-- Header -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-[#08080d]/80 backdrop-blur-xl border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+
+      <!-- Logo -->
+      <a routerLink="/dashboard" class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-white" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/>
+            <line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/>
+            <line x1="12" y1="22" x2="12" y2="18"/>
+          </svg>
+        </div>
+        <span class="font-bold text-lg tracking-tight hidden sm:block">ThresholdTracker</span>
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav class="hidden md:flex items-center gap-1">
+        <a routerLink="/dashboard"
+          class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          [ngClass]="currentRoute().includes('dashboard') ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'">
+          Dashboard
+        </a>
+      </nav>
+
+      <!-- Right side -->
+      <div class="flex items-center gap-3">
+        <button class="md:hidden p-2 text-white/40" (click)="mobileMenuOpen.set(!mobileMenuOpen())">
+          @if (!mobileMenuOpen()) {
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          }
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Nav -->
+    @if (mobileMenuOpen()) {
+      <div class="md:hidden border-t border-white/5 bg-[#08080d]/95 p-4">
+        <a routerLink="/dashboard" (click)="mobileMenuOpen.set(false)"
+          class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-white/50">
+          Dashboard
+        </a>
+      </div>
+    }
+  </header>
+
+  <!-- Page Content -->
+  <main class="pt-16 min-h-screen">
+    <router-outlet></router-outlet>
+  </main>
+</div>

@@ -1,0 +1,53 @@
+<div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+  <div class="bg-[#0f0f17] border border-white/10 rounded-2xl p-6 max-w-md w-full">
+    <h2 class="text-white text-lg font-semibold mb-4">Registrar Pontuação</h2>
+    <div class="space-y-4">
+      <div>
+        <label class="text-white/60 text-xs uppercase tracking-wider block mb-2">Pontuação</label>
+        <input type="number" [value]="value()" (input)="value.set($any($event.target).value)"
+          placeholder="Ex: 85000"
+          class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-lg font-semibold placeholder-white/20 outline-none focus:border-white/20" />
+        @if (isNewPB()) {
+          <p class="text-amber-400 text-sm mt-1 animate-pulse">🏆 Novo recorde pessoal!</p>
+        }
+        @if (currentPB > 0) {
+          <p class="text-white/30 text-xs mt-1">PB atual: {{ currentPB.toLocaleString() }}</p>
+        }
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <div>
+          <label class="text-white/60 text-xs uppercase tracking-wider block mb-2">Sense</label>
+          <input [value]="sensitivity()" (input)="sensitivity.set($any($event.target).value)"
+            placeholder="0.8"
+            class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/20 outline-none" />
+        </div>
+        <div>
+          <label class="text-white/60 text-xs uppercase tracking-wider block mb-2">FOV</label>
+          <input type="number" [value]="fov()" (input)="fov.set($any($event.target).value)"
+            placeholder="103"
+            class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/20 outline-none" />
+        </div>
+        <div>
+          <label class="text-white/60 text-xs uppercase tracking-wider block mb-2">DPI</label>
+          <input type="number" [value]="dpi()" (input)="dpi.set($any($event.target).value)"
+            placeholder="800"
+            class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/20 outline-none" />
+        </div>
+      </div>
+      <div>
+        <label class="text-white/60 text-xs uppercase tracking-wider block mb-2">Notas (opcional)</label>
+        <textarea [value]="notes()" (input)="notes.set($any($event.target).value)"
+          placeholder="Observações sobre a tentativa..."
+          class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/20 outline-none h-16 resize-none"></textarea>
+      </div>
+      <div class="flex gap-3 justify-end">
+        <button (click)="close.emit()"
+          class="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg text-sm">Cancelar</button>
+        <button (click)="onSave()" [disabled]="!numValue() || numValue() <= 0"
+          class="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg text-sm font-medium disabled:opacity-50">
+          Registrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

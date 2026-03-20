@@ -1,0 +1,18 @@
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+  <div class="bg-white/[0.03] rounded-xl p-4 border border-white/5">
+    <p class="text-white/40 text-xs uppercase tracking-wider mb-2">Tentativas</p>
+    <p class="text-white text-xl font-bold">{{ totalAttempts }}</p>
+  </div>
+  <div class="bg-white/[0.03] rounded-xl p-4 border border-white/5">
+    <p class="text-white/40 text-xs uppercase tracking-wider mb-2">Média</p>
+    <p class="text-white text-xl font-bold">{{ avgScore > 0 ? avgScore.toLocaleString() : '—' }}</p>
+  </div>
+  <div class="bg-white/[0.03] rounded-xl p-4 border border-white/5">
+    <p class="text-white/40 text-xs uppercase tracking-wider mb-2">PB</p>
+    <p class="text-white text-xl font-bold">{{ personalBest ? personalBest.toLocaleString() : '—' }}</p>
+  </div>
+  <div class="bg-white/[0.03] rounded-xl p-4 border border-white/5">
+    <p class="text-white/40 text-xs uppercase tracking-wider mb-2">Consistência</p>
+    <p class="text-white text-xl font-bold">{{ consistencyPct !== null ? consistencyPct + '%' : '—' }}</p>
+  </div>
+</div>

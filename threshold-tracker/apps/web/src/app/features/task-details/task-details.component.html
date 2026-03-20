@@ -1,38 +1,119 @@
-<section class="task-details">
-  <app-header />
-  <div class="task-details-content">
-    <p-button
-      label="Voltar"
-      icon="pi pi-arrow-left"
-      variant="text"
-      [routerLink]="['/dashboard']"
-      styleClass="back-btn"
-    />
-    @if (task(); as t) {
-      <p-card styleClass="details-card">
-        <div class="details-header">
-          <h1 class="details-title">{{ t.name }}</h1>
-          <p-tag [value]="t.type" [severity]="typeSeverity()" />
-        </div>
-        <div class="details-stats">
-          <div class="stat-item">
-            <span class="stat-label"><i class="pi pi-trophy"></i> Personal Best</span>
-            <span class="stat-value">{{ t.pb | number:'1.0-0' }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label"><i class="pi pi-flag"></i> Threshold</span>
-            <span class="stat-value">{{ t.threshold ? (t.threshold | number:'1.0-0') : '—' }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label"><i class="pi pi-sync"></i> Attempts</span>
-            <span class="stat-value">{{ t.attempts }}</span>
-          </div>
-        </div>
-      </p-card>
-    } @else {
-      <p-card>
-        <p class="not-found">Task não encontrada.</p>
-      </p-card>
-    }
+@if (loading()) {
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+    <div class="animate-pulse space-y-6">
+      <div class="h-8 bg-white/5 rounded w-48"></div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        @for (i of [1,2,3,4]; track i) {
+          <div class="h-24 bg-white/5 rounded-xl"></div>
+        }
+      </div>
+      <div class="h-64 bg-white/5 rounded-xl"></div>
+    </div>
   </div>
-</section>
+}
+
+@if (!loading() && task()) {
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div class="flex items-center gap-3">
+        <a routerLink="/dashboard"
+          class="p-2 text-white/40 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+          </svg>
+        </a>
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-bold text-white">{{ task()!.name }}</h1>
+          <span class="text-white/30 text-sm capitalize">{{ task()!.category }}</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 pl-11 sm:pl-0">
+        <button (click)="showSettings.set(!showSettings())"
+          class="p-2 text-white/40 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+          ⚙️
+        </button>
+        <button (click)="showDeleteConfirm.set(true)"
+          class="p-2 text-white/40 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors">
+          🗑️
+        </button>
+        <button (click)="showAddScore.set(true)"
+          class="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg font-medium transition-colors">
+          + Nova Pontuação
+        </button>
+      </div>
+    </div>
+
+    <!-- Threshold Settings -->
+    @if (showSettings()) {
+      <div class="bg-white/[0.03] rounded-2xl p-5 border border-white/5 mb-6">
+        <app-threshold-settings
+          [task]="task()!"
+          [scores]="scores()"
+          (save)="onUpdateThreshold($event)">
+        </app-threshold-settings>
+      </div>
+    }
+
+    <!-- Threshold Indicator -->
+    @if (task()!.threshold || task()!.personal_best) {
+      <div class="mb-6">
+        <app-threshold-indicator
+          [threshold]="task()!.threshold || 0"
+          [personalBest]="task()!.personal_best || 0"
+          [latestScore]="latestScore()">
+        </app-threshold-indicator>
+      </div>
+    }
+
+    <!-- Stats -->
+    <div class="mb-6">
+      <app-stats-overview
+        [scores]="scores()"
+        [threshold]="task()!.threshold || 0"
+        [personalBest]="task()!.personal_best || 0">
+      </app-stats-overview>
+    </div>
+
+    <!-- Chart -->
+    <div class="bg-white/[0.03] rounded-2xl p-5 border border-white/5 mb-6">
+      <h2 class="text-white/60 text-sm font-medium uppercase tracking-wider mb-4">Evolução de Pontuação</h2>
+      <app-score-chart [scores]="scores()" [threshold]="task()!.threshold || 0"></app-score-chart>
+    </div>
+
+    <!-- History Table -->
+    <div class="bg-white/[0.03] rounded-2xl border border-white/5 overflow-hidden">
+      <div class="px-5 py-4 border-b border-white/5">
+        <h2 class="text-white/60 text-sm font-medium uppercase tracking-wider">Histórico de Pontuações</h2>
+      </div>
+      <app-score-history-table [scores]="scores()" (delete)="onDeleteScore($event)"></app-score-history-table>
+    </div>
+  </div>
+
+  <!-- Delete Confirm Modal -->
+  @if (showDeleteConfirm()) {
+    <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+      <div class="bg-[#0f0f17] border border-white/10 rounded-2xl p-6 max-w-md w-full">
+        <h3 class="text-white font-semibold text-lg mb-2">Excluir Task</h3>
+        <p class="text-white/40 text-sm mb-6">Isso irá excluir a task e todas as pontuações associadas. Esta ação não pode ser desfeita.</p>
+        <div class="flex gap-3 justify-end">
+          <button (click)="showDeleteConfirm.set(false)"
+            class="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg text-sm">Cancelar</button>
+          <button (click)="onDeleteTask()"
+            class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm">Excluir</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Add Score Modal -->
+  @if (showAddScore()) {
+    <app-add-score-dialog
+      [currentPB]="task()!.personal_best || 0"
+      (close)="showAddScore.set(false)"
+      (save)="onAddScore($event)">
+    </app-add-score-dialog>
+  }
+}

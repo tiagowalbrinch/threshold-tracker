@@ -1,8 +1,9 @@
 export interface Task {
-  id: number;
+  id: string;
   name: string;
-  type: 'Clicking' | 'Flicking' | 'Tracking' | 'Switching' | 'Other';
-  threshold: number | null;
-  pb: number;
-  attempts: number;
+  category: 'tracking' | 'flicking' | 'switching' | 'clicking' | 'other';
+  threshold?: number;
+  personal_best?: number;
+  notes?: string;
+  created_date?: string;
 }

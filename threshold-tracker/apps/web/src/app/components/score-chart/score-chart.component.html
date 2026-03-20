@@ -1,0 +1,13 @@
+@if (scores.length === 0) {
+  <div class="flex items-center justify-center h-48 text-white/20 text-sm">
+    Nenhuma pontuação registrada ainda
+  </div>
+}
+@if (scores.length > 0 && isBrowser) {
+  <canvas baseChart
+    [datasets]="chartData"
+    [labels]="chartLabels"
+    [options]="chartOptions"
+    type="line">
+  </canvas>
+}

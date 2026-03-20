@@ -1,35 +1,71 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { TaskService } from '../../core/services/task.service';
-import { TaskCardComponent } from './task-card/task-card.component';
-import { TaskFilterComponent } from './task-filter/task-filter.component';
-import { TaskSearchComponent } from './task-search/task-search.component';
-import { HeaderComponent } from '../../core/components/header/header.component';
-import { ButtonModule } from 'primeng/button';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { NgClass } from '@angular/common';
+import { Task } from '../../models/task.model';
+import { Score } from '../../models/score.model';
+import { TaskService } from '../../services/task.service';
+import { ScoreService } from '../../services/score.service';
+import { TaskCardComponent } from '../../components/task-card/task-card.component';
+import { AddTaskDialogComponent } from '../../components/add-task-dialog/add-task-dialog.component';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TaskCardComponent, TaskFilterComponent, TaskSearchComponent, HeaderComponent, ButtonModule],
+  imports: [NgClass, TaskCardComponent, AddTaskDialogComponent],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   private taskService = inject(TaskService);
-  private allTasks = toSignal(this.taskService.getTasks(), { initialValue: [] });
+  private scoreService = inject(ScoreService);
 
-  filterType = signal('Todas');
-  searchTerm = signal('');
+  tasks = signal<Task[]>([]);
+  scores = signal<Score[]>([]);
+  loading = signal(true);
+  search = signal('');
+  filterCategory = signal('all');
+  showAddTask = signal(false);
+
+  categories = ['all', 'tracking', 'flicking', 'switching', 'clicking', 'other'];
 
   filteredTasks = computed(() => {
-    const tasks = this.allTasks();
-    const type = this.filterType();
-    const search = this.searchTerm().toLowerCase();
-    return tasks.filter(task => {
-      const matchesType = type === 'Todas' || task.type === type;
-      const matchesSearch = !search || task.name.toLowerCase().includes(search);
-      return matchesType && matchesSearch;
+    const q = this.search().toLowerCase();
+    const cat = this.filterCategory();
+    return this.tasks().filter(t => {
+      const matchesSearch = t.name.toLowerCase().includes(q);
+      const matchesCategory = cat === 'all' || t.category === cat;
+      return matchesSearch && matchesCategory;
     });
   });
+
+  ngOnInit() {
+    forkJoin({
+      tasks: this.taskService.getAll(),
+      scores: this.scoreService.getAll()
+    }).subscribe({
+      next: ({ tasks, scores }) => {
+        this.tasks.set(tasks);
+        this.scores.set(scores);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Failed to load data', err);
+        this.loading.set(false);
+      }
+    });
+  }
+
+  getScoreCount(taskId: string): number {
+    return this.scores().filter(s => s.task_id === taskId).length;
+  }
+
+  categoryLabel(cat: string): string {
+    return cat === 'all' ? 'Todas' : cat.charAt(0).toUpperCase() + cat.slice(1);
+  }
+
+  onTaskCreated(taskData: Partial<Task>) {
+    this.taskService.create(taskData).subscribe(newTask => {
+      this.tasks.update(tasks => [newTask, ...tasks]);
+      this.showAddTask.set(false);
+    });
+  }
 }

@@ -1,0 +1,26 @@
+<div class="space-y-4">
+  <div class="space-y-2">
+    <label class="text-white/60 text-xs uppercase tracking-wider">Threshold</label>
+    <div class="flex gap-2">
+      <input type="number" [value]="value()" (input)="value.set($any($event.target).value)"
+        placeholder="Defina o threshold..."
+        class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/20 outline-none focus:border-white/20" />
+      <button (click)="onSave()" [disabled]="!value() || saving()"
+        class="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-medium disabled:opacity-50">
+        Salvar
+      </button>
+    </div>
+  </div>
+  @if (suggested()) {
+    <button (click)="value.set(suggested()!.toString())"
+      class="flex items-center gap-2 text-sm text-amber-400/80 hover:text-amber-400 transition-colors">
+      💡 Threshold sugerido: <strong>{{ suggested()!.toLocaleString() }}</strong>
+      <span class="text-white/30 ml-1">(baseado em {{ scores.length }} tentativas)</span>
+    </button>
+  }
+  @if (scores.length < 5 && scores.length > 0) {
+    <p class="text-white/20 text-xs">
+      Registre pelo menos 5 pontuações para receber uma sugestão de threshold
+    </p>
+  }
+</div>

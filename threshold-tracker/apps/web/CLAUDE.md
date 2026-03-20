@@ -2,7 +2,7 @@
 
 ## Angular Skills
 Always follow the Angular skills provided in the system prompt for all component, service, routing, form, HTTP, SSR, and DI work:
-- Components: `angular-component` skill (signals, OnPush, standalone)
+- Components: `angular-component` skill (standalone, OnPush optional)
 - Dependency injection: `angular-di` skill
 - Directives: `angular-directives` skill
 - Forms: `angular-forms` skill
@@ -13,50 +13,30 @@ Always follow the Angular skills provided in the system prompt for all component
 - Testing: `angular-testing` skill
 - CLI / tooling: `angular-tooling` skill
 
-## UI Components — PrimeNG
-All UI components must come from **PrimeNG** (already installed). Do not create custom HTML/CSS for anything PrimeNG covers:
-- Buttons → `p-button`
-- Cards → `p-card`
-- Tables → `p-table`
-- Charts → `p-chart` (backed by Chart.js)
-- Progress bars → `p-progressbar`
-- Inputs → `p-inputtext`, `p-select`, etc.
-- Tags / badges → `p-tag`
-- Chips / filters → `p-chip`
-- Dialogs → `p-dialog`
-- Import the relevant PrimeNG module in each standalone component's `imports` array.
+## UI / Styling — Tailwind CSS
+All styling uses **Tailwind CSS v3** utility classes. Do not use PrimeNG components.
+- Global base styles live in `src/styles.css` (`@tailwind base/components/utilities` + dark body)
+- Do not write component `.scss` files — use Tailwind classes inline in templates
+- Color palette: violet (`violet-600`), cyan (`cyan-400`), amber (`amber-400`), rose (`rose-400`), emerald
+- Dark backgrounds: `bg-[#08080d]`, `bg-[#0f0f17]`, `bg-white/[0.03]`
+- Borders: `border-white/5`, `border-white/10`
 
-## Icons — PrimeIcons
-Use **PrimeIcons** for all icons (already loaded globally via `angular.json`):
-```html
-<i class="pi pi-check"></i>
-<p-button icon="pi pi-plus" />
-```
-Do not install or use other icon libraries (Material Icons, Font Awesome, etc.).
+## Charts — ng2-charts + Chart.js
+Use **ng2-charts** (`NgChartsModule`) for all charts (backed by Chart.js):
+- Import `NgChartsModule` in the standalone component's `imports` array
+- `provideCharts(withDefaultRegisterables())` is already registered in `app.config.ts`
+- Chart components must guard against SSR: use `isPlatformBrowser(platformId)` before rendering
 
-## Theming — Global Styles Only
-All CSS custom properties (colors, spacing, surface tokens) live in `src/styles.scss`. Do not redefine theme tokens inside component SCSS files.
-
-Available tokens:
-```scss
---color-bg        // #11111a  — page background
---color-header    // #181828  — header/navbar
---color-card      // #1a1a2e  — card surfaces
---color-primary   // #7b2ff2  — purple accent
---color-accent    // #e94560  — red/pink accent
---color-secondary // #08d9d6  — teal accent
---color-text      // #fff
---color-muted     // #bdbdf7
---spacing         // 1rem
-```
-
-PrimeNG surface tokens (`--p-surface-*`, `--p-primary-color`, etc.) are also defined there and map the brand palette into PrimeNG internals — do not override them in components.
+## Control Flow
+Use Angular 17+ built-in control flow syntax in all templates:
+- `@if (condition) { } @else { }` — not `*ngIf`
+- `@for (item of list; track item.id) { }` — not `*ngFor`
+- `@switch (value) { @case (x) { } }` — not `*ngSwitch`
 
 ## SSR Rules
 - The app uses Angular SSR. Never access `window`, `document`, or `localStorage` directly.
-- Use `PLATFORM_ID` + `isPlatformBrowser()` or `@defer (on browser)` for browser-only code.
-- `p-chart` (Chart.js) must be wrapped in a browser-only guard.
+- Use `PLATFORM_ID` + `isPlatformBrowser()` for browser-only code.
+- Chart canvas must be guarded with `isPlatformBrowser` check.
 
 ## Style
 - Dark only — no light mode toggle, no `prefers-color-scheme` media queries.
-- Always-dark Aura preset is locked via `darkModeSelector: 'none'` in `app.config.ts`.
