@@ -1,46 +1,50 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ThresholdTracker.Domain.Entities;
+using ThresholdTracker.Domain.Identity;
 
 namespace ThresholdTracker.Infrastructure.Persistence;
 
-public class AppDbContext : DbContext
+public class AppDbContext : IdentityDbContext<ApplicationUser>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
+        ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
     }
 
-    public DbSet<Map> Maps => Set<Map>();
-    public DbSet<ScoreEntry> ScoreEntries => Set<ScoreEntry>();
+    public DbSet<AimTask> Tasks => Set<AimTask>();
+    public DbSet<ScoreAttempt> ScoreAttempts => Set<ScoreAttempt>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<Map>(entity =>
+        modelBuilder.Entity<AimTask>(entity =>
         {
-            entity.ToTable("maps");
+            entity.ToTable("aim_tasks");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired();
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.Record).HasColumnName("record");
-            entity.Property(e => e.Threshold).HasColumnName("threshold");
-            entity.Property(e => e.CurrentScore).HasColumnName("current_score");
-            entity.Property(e => e.LastUpdated).HasColumnName("last_updated");
-
+            entity.Property(e => e.CreatedDate).HasColumnName("created_date");
+            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
+            entity.Property(e => e.Category)
+                .HasConversion<string>()
+                .HasColumnName("category");
+            entity.HasIndex(e => e.Name).IsUnique();
             entity.HasMany(e => e.Scores)
-                  .WithOne(e => e.Map)
-                  .HasForeignKey(e => e.MapId)
+                  .WithOne(e => e.Task)
+                  .HasForeignKey(e => e.TaskId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
 
-        modelBuilder.Entity<ScoreEntry>(entity =>
+        modelBuilder.Entity<ScoreAttempt>(entity =>
         {
-            entity.ToTable("score_entries");
+            entity.ToTable("score_attempts");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.Score).IsRequired();
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.HasIndex(e => new { e.MapId, e.CreatedAt }).HasDatabaseName("idx_score_entries_map_id_created_at");
+            entity.Property(e => e.Value).IsRequired();
+            entity.Property(e => e.CreatedDate).HasColumnName("created_date");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.HasIndex(e => new { e.TaskId, e.CreatedDate })
+                .HasDatabaseName("idx_score_attempts_task_id_created_date");
         });
     }
 }
-

@@ -1,6 +1,6 @@
 @if (scores.length === 0) {
   <div class="text-center py-12 text-white/20 text-sm">
-    Nenhuma pontuação registrada
+    No scores recorded yet
   </div>
 }
 @if (scores.length > 0) {
@@ -9,8 +9,8 @@
       <thead>
         <tr class="text-white/30 text-xs uppercase tracking-wider border-b border-white/5">
           <th class="text-left py-3 px-4 font-medium">#</th>
-          <th class="text-left py-3 px-4 font-medium">Pontuação</th>
-          <th class="text-left py-3 px-4 font-medium">Data</th>
+          <th class="text-left py-3 px-4 font-medium">Score</th>
+          <th class="text-left py-3 px-4 font-medium">Date</th>
           <th class="text-left py-3 px-4 font-medium">Sense</th>
           <th class="text-left py-3 px-4 font-medium">FOV</th>
           <th class="text-left py-3 px-4 font-medium">DPI</th>
@@ -27,17 +27,22 @@
                 @if (score.is_pb) {
                   <span class="text-amber-400 text-xs">🏆</span>
                 }
+                @if (currentUserId && score.user_id === currentUserId) {
+                  <span class="text-xs px-1.5 py-0.5 bg-violet-600/20 text-violet-400 rounded">you</span>
+                }
               </div>
             </td>
-            <td class="py-3 px-4 text-white/40">{{ formatDate(score.created_date!) }}</td>
+            <td class="py-3 px-4 text-white/40">{{ score.created_date ? formatDate(score.created_date) : '—' }}</td>
             <td class="py-3 px-4 text-white/40">{{ score.sensitivity || '—' }}</td>
             <td class="py-3 px-4 text-white/40">{{ score.fov || '—' }}</td>
             <td class="py-3 px-4 text-white/40">{{ score.dpi || '—' }}</td>
             <td class="py-3 px-4 text-right">
-              <button (click)="delete.emit(score.id)"
-                class="p-1.5 text-white/20 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors">
-                🗑️
-              </button>
+              @if (canDelete(score)) {
+                <button (click)="delete.emit(score.id)"
+                  class="p-1.5 text-white/20 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors">
+                  🗑️
+                </button>
+              }
             </td>
           </tr>
         }

@@ -1,51 +1,78 @@
-using Microsoft.EntityFrameworkCore;
-using ThresholdTracker.Application.Services;
-using ThresholdTracker.Application.Validation;
-using ThresholdTracker.Domain.Repositories;
-using ThresholdTracker.Infrastructure.Persistence;
-using ThresholdTracker.Infrastructure.Repositories;
-using ThresholdTracker.Infrastructure.Services;
+using Microsoft.OpenApi.Models;
+using ThresholdTracker.Api;
+using ThresholdTracker.Application;
+using ThresholdTracker.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.SnakeCaseLower);
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "ThresholdTracker API", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter JWT token"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+            },
+            []
+        }
+    });
+});
 
-// Database configuration
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
-// Domain/Application services
-builder.Services.AddScoped<IMapRepository, MapRepository>();
-builder.Services.AddScoped<IScoreEntryRepository, ScoreEntryRepository>();
-builder.Services.AddScoped<IMapService, MapService>();
-builder.Services.AddScoped<IScoreService, ScoreService>();
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        var origins = builder.Configuration["AllowedOrigins"]?.Split(',')
+            ?? ["http://localhost:4200"];
+        policy.WithOrigins(origins)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
-// External score import abstractions (no concrete provider yet)
-builder.Services.AddScoped<IExternalScoreProvider, DummyExternalScoreProvider>();
-builder.Services.AddScoped<IScoreImportService, ScoreImportService>();
-
-builder.Services.AddScoped<IMapValidator, MapValidator>();
+builder.Services
+    .AddInfrastructure(builder.Configuration)
+    .AddApplication();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+if (!app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<ThresholdTracker.Infrastructure.Persistence.AppDbContext>();
+    await Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.MigrateAsync(db.Database);
+}
+
 app.UseHttpsRedirection();
-
-app.UseRouting();
-
+app.UseCors();
+app.UseExceptionHandler();
+app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
-

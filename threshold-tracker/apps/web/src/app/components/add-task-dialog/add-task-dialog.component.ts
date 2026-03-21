@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
 
 @Component({
   selector: 'app-add-task-dialog',
@@ -7,8 +7,10 @@ import { Component, Output, EventEmitter, signal } from '@angular/core';
   templateUrl: './add-task-dialog.component.html',
 })
 export class AddTaskDialogComponent {
+  @Input() duplicateTaskId: string | null = null;
   @Output() close = new EventEmitter<void>();
   @Output() save = new EventEmitter<any>();
+  @Output() goToExisting = new EventEmitter<void>();
 
   name = signal('');
   category = signal('clicking');
@@ -19,7 +21,7 @@ export class AddTaskDialogComponent {
     { value: 'flicking', label: 'Flicking' },
     { value: 'switching', label: 'Switching' },
     { value: 'clicking', label: 'Clicking' },
-    { value: 'other', label: 'Outro' },
+    { value: 'other', label: 'Other' },
   ];
 
   onSave() {

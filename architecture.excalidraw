@@ -1,0 +1,379 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://excalidraw.com",
+  "elements": [
+    {
+      "id": "section-auth-bg", "type": "rectangle", "x": 40, "y": 40, "width": 440, "height": 300,
+      "strokeColor": "#6366f1", "backgroundColor": "#1e1b4b", "fillStyle": "solid",
+      "strokeWidth": 1, "roughness": 0, "opacity": 30, "roundness": { "type": 3 }
+    },
+    {
+      "id": "section-auth-title", "type": "text", "x": 55, "y": 50,
+      "text": "Auth Flow", "fontSize": 16, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#a5b4fc", "opacity": 100
+    },
+    {
+      "id": "browser-box", "type": "rectangle", "x": 70, "y": 100, "width": 120, "height": 60,
+      "strokeColor": "#6366f1", "backgroundColor": "#312e81", "fillStyle": "solid",
+      "strokeWidth": 2, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "browser-label", "type": "text", "x": 88, "y": 122,
+      "text": "Browser\n(Angular)", "fontSize": 13, "fontFamily": 1,
+      "textAlign": "center", "strokeColor": "#e0e7ff"
+    },
+    {
+      "id": "auth-arrow-1", "type": "arrow", "x": 193, "y": 130, "width": 120, "height": 0,
+      "strokeColor": "#a5b4fc", "strokeWidth": 2, "roughness": 0,
+      "startArrowhead": null, "endArrowhead": "arrow",
+      "points": [[0, 0], [120, 0]]
+    },
+    {
+      "id": "auth-arrow-label", "type": "text", "x": 200, "y": 108,
+      "text": "POST /auth/login\nPOST /auth/register", "fontSize": 11, "fontFamily": 1,
+      "textAlign": "center", "strokeColor": "#c7d2fe"
+    },
+    {
+      "id": "api-auth-box", "type": "rectangle", "x": 315, "y": 100, "width": 130, "height": 60,
+      "strokeColor": "#6366f1", "backgroundColor": "#312e81", "fillStyle": "solid",
+      "strokeWidth": 2, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "api-auth-label", "type": "text", "x": 333, "y": 115,
+      "text": "API\nAuthController", "fontSize": 13, "fontFamily": 1,
+      "textAlign": "center", "strokeColor": "#e0e7ff"
+    },
+    {
+      "id": "auth-arrow-2", "type": "arrow", "x": 315, "y": 160, "width": -120, "height": 0,
+      "strokeColor": "#34d399", "strokeWidth": 2, "roughness": 0,
+      "startArrowhead": null, "endArrowhead": "arrow",
+      "points": [[0, 0], [-120, 0]]
+    },
+    {
+      "id": "jwt-label", "type": "text", "x": 200, "y": 165,
+      "text": "JWT { token, user_id,\ndisplay_name }", "fontSize": 11, "fontFamily": 1,
+      "textAlign": "center", "strokeColor": "#34d399"
+    },
+    {
+      "id": "localstorage-box", "type": "rectangle", "x": 70, "y": 220, "width": 120, "height": 50,
+      "strokeColor": "#f59e0b", "backgroundColor": "#451a03", "fillStyle": "solid",
+      "strokeWidth": 2, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "localstorage-label", "type": "text", "x": 78, "y": 237,
+      "text": "localStorage\nauth_token", "fontSize": 11, "fontFamily": 1,
+      "textAlign": "center", "strokeColor": "#fde68a"
+    },
+    {
+      "id": "localstorage-arrow", "type": "arrow", "x": 130, "y": 218, "width": 0, "height": -55,
+      "strokeColor": "#f59e0b", "strokeWidth": 1, "roughness": 0,
+      "startArrowhead": null, "endArrowhead": "arrow",
+      "points": [[0, 0], [0, -55]]
+    },
+    {
+      "id": "interceptor-box", "type": "rectangle", "x": 235, "y": 220, "width": 210, "height": 50,
+      "strokeColor": "#8b5cf6", "backgroundColor": "#2e1065", "fillStyle": "solid",
+      "strokeWidth": 2, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "interceptor-label", "type": "text", "x": 248, "y": 237,
+      "text": "AuthInterceptor\nAuthorization: Bearer {token}", "fontSize": 10, "fontFamily": 1,
+      "textAlign": "center", "strokeColor": "#ddd6fe"
+    },
+
+    {
+      "id": "section-task-bg", "type": "rectangle", "x": 510, "y": 40, "width": 440, "height": 300,
+      "strokeColor": "#06b6d4", "backgroundColor": "#083344", "fillStyle": "solid",
+      "strokeWidth": 1, "roughness": 0, "opacity": 30, "roundness": { "type": 3 }
+    },
+    {
+      "id": "section-task-title", "type": "text", "x": 525, "y": 50,
+      "text": "Task Flow", "fontSize": 16, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#67e8f9", "opacity": 100
+    },
+    {
+      "id": "task-anon-box", "type": "rectangle", "x": 535, "y": 90, "width": 180, "height": 80,
+      "strokeColor": "#06b6d4", "backgroundColor": "#164e63", "fillStyle": "solid",
+      "strokeWidth": 2, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "task-anon-label", "type": "text", "x": 548, "y": 100,
+      "text": "Public (no auth)\nGET /tasks?page&pageSize\nGET /tasks/{id}", "fontSize": 11, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#cffafe"
+    },
+    {
+      "id": "task-auth-box", "type": "rectangle", "x": 535, "y": 195, "width": 180, "height": 110,
+      "strokeColor": "#06b6d4", "backgroundColor": "#164e63", "fillStyle": "solid",
+      "strokeWidth": 2, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "task-auth-label", "type": "text", "x": 548, "y": 203,
+      "text": "Auth required\nPOST /tasks → 201\n  └ 409 if duplicate\nPATCH /tasks/{id}\n  └ 403 if not creator\nDELETE /tasks/{id}\n  └ 403 if not creator", "fontSize": 10, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#cffafe"
+    },
+    {
+      "id": "task-pagedresp-box", "type": "rectangle", "x": 745, "y": 90, "width": 185, "height": 80,
+      "strokeColor": "#22d3ee", "backgroundColor": "#0c4a6e", "fillStyle": "solid",
+      "strokeWidth": 1, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "task-pagedresp-label", "type": "text", "x": 758, "y": 98,
+      "text": "PagedResponse<Task>\n{ items, total_count,\n  page, page_size,\n  has_next_page }", "fontSize": 10, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#e0f2fe"
+    },
+    {
+      "id": "task-paged-arrow", "type": "arrow", "x": 718, "y": 125, "width": 25, "height": 0,
+      "strokeColor": "#22d3ee", "strokeWidth": 1, "roughness": 0,
+      "startArrowhead": null, "endArrowhead": "arrow",
+      "points": [[0, 0], [25, 0]]
+    },
+
+    {
+      "id": "section-score-bg", "type": "rectangle", "x": 40, "y": 370, "width": 440, "height": 280,
+      "strokeColor": "#10b981", "backgroundColor": "#052e16", "fillStyle": "solid",
+      "strokeWidth": 1, "roughness": 0, "opacity": 30, "roundness": { "type": 3 }
+    },
+    {
+      "id": "section-score-title", "type": "text", "x": 55, "y": 380,
+      "text": "Score Flow", "fontSize": 16, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#6ee7b7", "opacity": 100
+    },
+    {
+      "id": "score-read-box", "type": "rectangle", "x": 65, "y": 415, "width": 200, "height": 65,
+      "strokeColor": "#10b981", "backgroundColor": "#064e3b", "fillStyle": "solid",
+      "strokeWidth": 2, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "score-read-label", "type": "text", "x": 78, "y": 423,
+      "text": "Public (no auth)\nGET /scores?task_id={id}\n→ all scores for task", "fontSize": 10, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#d1fae5"
+    },
+    {
+      "id": "score-mine-box", "type": "rectangle", "x": 65, "y": 497, "width": 200, "height": 50,
+      "strokeColor": "#10b981", "backgroundColor": "#064e3b", "fillStyle": "solid",
+      "strokeWidth": 2, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "score-mine-label", "type": "text", "x": 78, "y": 505,
+      "text": "Auth required\nGET /scores?task_id&mine=true", "fontSize": 10, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#d1fae5"
+    },
+    {
+      "id": "score-post-box", "type": "rectangle", "x": 65, "y": 563, "width": 200, "height": 70,
+      "strokeColor": "#10b981", "backgroundColor": "#064e3b", "fillStyle": "solid",
+      "strokeWidth": 2, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "score-post-label", "type": "text", "x": 78, "y": 570,
+      "text": "Auth required\nPOST /scores\n  └ auto-detect is_pb\n  └ resolves defaults\nDELETE /scores/{id}", "fontSize": 10, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#d1fae5"
+    },
+
+    {
+      "id": "section-profile-bg", "type": "rectangle", "x": 510, "y": 370, "width": 440, "height": 280,
+      "strokeColor": "#f59e0b", "backgroundColor": "#1c0a00", "fillStyle": "solid",
+      "strokeWidth": 1, "roughness": 0, "opacity": 30, "roundness": { "type": 3 }
+    },
+    {
+      "id": "section-profile-title", "type": "text", "x": 525, "y": 380,
+      "text": "Profile", "fontSize": 16, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#fcd34d", "opacity": 100
+    },
+    {
+      "id": "profile-box", "type": "rectangle", "x": 535, "y": 415, "width": 200, "height": 100,
+      "strokeColor": "#f59e0b", "backgroundColor": "#451a03", "fillStyle": "solid",
+      "strokeWidth": 2, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "profile-label", "type": "text", "x": 548, "y": 423,
+      "text": "Auth required\nGET /profile\n→ display_name, email,\n  default_sensitivity,\n  default_fov, default_dpi\nPATCH /profile → update", "fontSize": 10, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#fef3c7"
+    },
+    {
+      "id": "profile-score-arrow", "type": "arrow", "x": 635, "y": 518, "width": 0, "height": 100,
+      "strokeColor": "#f59e0b", "strokeWidth": 2, "roughness": 0,
+      "startArrowhead": null, "endArrowhead": "arrow",
+      "points": [[0, 0], [0, 100]]
+    },
+    {
+      "id": "profile-score-arrow-label", "type": "text", "x": 645, "y": 550,
+      "text": "pre-fills\nsens/FOV/DPI", "fontSize": 10, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#fcd34d"
+    },
+    {
+      "id": "add-score-dialog-box", "type": "rectangle", "x": 535, "y": 580, "width": 200, "height": 55,
+      "strokeColor": "#f59e0b", "backgroundColor": "#451a03", "fillStyle": "solid",
+      "strokeWidth": 2, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "add-score-dialog-label", "type": "text", "x": 548, "y": 593,
+      "text": "Add Score Dialog\n(Angular component)", "fontSize": 11, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#fef3c7"
+    },
+
+    {
+      "id": "section-infra-bg", "type": "rectangle", "x": 40, "y": 680, "width": 910, "height": 160,
+      "strokeColor": "#8b5cf6", "backgroundColor": "#1e0030", "fillStyle": "solid",
+      "strokeWidth": 1, "roughness": 0, "opacity": 30, "roundness": { "type": 3 }
+    },
+    {
+      "id": "section-infra-title", "type": "text", "x": 55, "y": 690,
+      "text": "Infrastructure (Deployment)", "fontSize": 16, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#c4b5fd", "opacity": 100
+    },
+    {
+      "id": "vercel-box", "type": "rectangle", "x": 65, "y": 720, "width": 160, "height": 80,
+      "strokeColor": "#8b5cf6", "backgroundColor": "#3b0764", "fillStyle": "solid",
+      "strokeWidth": 2, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "vercel-label", "type": "text", "x": 80, "y": 740,
+      "text": "Vercel\nAngular SPA\n(ng build)", "fontSize": 11, "fontFamily": 1,
+      "textAlign": "center", "strokeColor": "#ede9fe"
+    },
+    {
+      "id": "infra-arrow-1", "type": "arrow", "x": 228, "y": 760, "width": 80, "height": 0,
+      "strokeColor": "#a78bfa", "strokeWidth": 2, "roughness": 0,
+      "startArrowhead": null, "endArrowhead": "arrow",
+      "points": [[0, 0], [80, 0]]
+    },
+    {
+      "id": "infra-arrow-1-label", "type": "text", "x": 238, "y": 740,
+      "text": "HTTPS\nAPI calls", "fontSize": 10, "fontFamily": 1,
+      "textAlign": "center", "strokeColor": "#c4b5fd"
+    },
+    {
+      "id": "railway-api-box", "type": "rectangle", "x": 310, "y": 720, "width": 180, "height": 80,
+      "strokeColor": "#8b5cf6", "backgroundColor": "#3b0764", "fillStyle": "solid",
+      "strokeWidth": 2, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "railway-api-label", "type": "text", "x": 318, "y": 733,
+      "text": "Railway\n.NET 8 API\n(Docker)\nport 5000", "fontSize": 11, "fontFamily": 1,
+      "textAlign": "center", "strokeColor": "#ede9fe"
+    },
+    {
+      "id": "infra-arrow-2", "type": "arrow", "x": 493, "y": 760, "width": 80, "height": 0,
+      "strokeColor": "#a78bfa", "strokeWidth": 2, "roughness": 0,
+      "startArrowhead": null, "endArrowhead": "arrow",
+      "points": [[0, 0], [80, 0]]
+    },
+    {
+      "id": "infra-arrow-2-label", "type": "text", "x": 498, "y": 740,
+      "text": "EF Core\nNpgsql", "fontSize": 10, "fontFamily": 1,
+      "textAlign": "center", "strokeColor": "#c4b5fd"
+    },
+    {
+      "id": "railway-pg-box", "type": "rectangle", "x": 575, "y": 720, "width": 160, "height": 80,
+      "strokeColor": "#8b5cf6", "backgroundColor": "#3b0764", "fillStyle": "solid",
+      "strokeWidth": 2, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "railway-pg-label", "type": "text", "x": 583, "y": 733,
+      "text": "Railway\nPostgreSQL 16\nport 5432", "fontSize": 11, "fontFamily": 1,
+      "textAlign": "center", "strokeColor": "#ede9fe"
+    },
+    {
+      "id": "env-vars-box", "type": "rectangle", "x": 760, "y": 720, "width": 175, "height": 80,
+      "strokeColor": "#6d28d9", "backgroundColor": "#2e1065", "fillStyle": "solid",
+      "strokeWidth": 1, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "env-vars-label", "type": "text", "x": 770, "y": 728,
+      "text": "Env Vars (Railway)\nConnectionStrings__\n  DefaultConnection\nJwt__Key\nAllowedOrigins", "fontSize": 10, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#ddd6fe"
+    },
+
+    {
+      "id": "section-model-bg", "type": "rectangle", "x": 40, "y": 870, "width": 910, "height": 280,
+      "strokeColor": "#ec4899", "backgroundColor": "#1a0010", "fillStyle": "solid",
+      "strokeWidth": 1, "roughness": 0, "opacity": 30, "roundness": { "type": 3 }
+    },
+    {
+      "id": "section-model-title", "type": "text", "x": 55, "y": 880,
+      "text": "Data Model", "fontSize": 16, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#f9a8d4", "opacity": 100
+    },
+    {
+      "id": "user-model-box", "type": "rectangle", "x": 65, "y": 910, "width": 230, "height": 210,
+      "strokeColor": "#ec4899", "backgroundColor": "#500724", "fillStyle": "solid",
+      "strokeWidth": 2, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "user-model-label", "type": "text", "x": 78, "y": 916,
+      "text": "ApplicationUser\n(IdentityUser)\n─────────────────\nId: string\nEmail: string\nDisplayName: string\nDefaultSensitivity: string?\nDefaultFov: float?\nDefaultDpi: int?\n─────────────────\nAspNetUsers table", "fontSize": 10, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#fce7f3"
+    },
+    {
+      "id": "task-model-box", "type": "rectangle", "x": 370, "y": 910, "width": 230, "height": 210,
+      "strokeColor": "#ec4899", "backgroundColor": "#500724", "fillStyle": "solid",
+      "strokeWidth": 2, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "task-model-label", "type": "text", "x": 383, "y": 916,
+      "text": "AimTask\n─────────────────\nId: Guid\nName: string (unique)\nCategory: TaskCategory\n  (enum → string)\nThreshold: int?\nPersonalBest: int?\nNotes: string?\nCreatedDate: DateTime\nCreatedByUserId: string\n─────────────────\naim_tasks table", "fontSize": 10, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#fce7f3"
+    },
+    {
+      "id": "score-model-box", "type": "rectangle", "x": 675, "y": 910, "width": 255, "height": 210,
+      "strokeColor": "#ec4899", "backgroundColor": "#500724", "fillStyle": "solid",
+      "strokeWidth": 2, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "score-model-label", "type": "text", "x": 688, "y": 916,
+      "text": "ScoreAttempt\n─────────────────\nId: Guid\nTaskId: Guid (FK → AimTask)\nValue: int\nIsPb: bool\nSensitivity: string?\nFov: float?\nDpi: int?\nNotes: string?\nCreatedDate: DateTime\nUserId: string (FK → User)\n─────────────────\nscore_attempts table", "fontSize": 10, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#fce7f3"
+    },
+    {
+      "id": "model-arrow-1", "type": "arrow", "x": 298, "y": 990, "width": 70, "height": 0,
+      "strokeColor": "#f472b6", "strokeWidth": 2, "roughness": 0,
+      "startArrowhead": null, "endArrowhead": "arrow",
+      "points": [[0, 0], [70, 0]]
+    },
+    {
+      "id": "model-arrow-1-label", "type": "text", "x": 304, "y": 970,
+      "text": "created_by\n1 : many", "fontSize": 10, "fontFamily": 1,
+      "textAlign": "center", "strokeColor": "#f9a8d4"
+    },
+    {
+      "id": "model-arrow-2", "type": "arrow", "x": 603, "y": 990, "width": 70, "height": 0,
+      "strokeColor": "#f472b6", "strokeWidth": 2, "roughness": 0,
+      "startArrowhead": null, "endArrowhead": "arrow",
+      "points": [[0, 0], [70, 0]]
+    },
+    {
+      "id": "model-arrow-2-label", "type": "text", "x": 607, "y": 970,
+      "text": "task_id\n1 : many\n(cascade delete)", "fontSize": 10, "fontFamily": 1,
+      "textAlign": "center", "strokeColor": "#f9a8d4"
+    },
+    {
+      "id": "model-arrow-3", "type": "arrow", "x": 180, "y": 1075, "width": 590, "height": 55,
+      "strokeColor": "#f472b6", "strokeWidth": 1, "roughness": 0,
+      "startArrowhead": null, "endArrowhead": "arrow",
+      "points": [[0, 0], [590, 55]]
+    },
+    {
+      "id": "model-arrow-3-label", "type": "text", "x": 400, "y": 1090,
+      "text": "user_id (score owner)", "fontSize": 10, "fontFamily": 1,
+      "textAlign": "center", "strokeColor": "#f9a8d4"
+    },
+
+    {
+      "id": "category-enum-box", "type": "rectangle", "x": 370, "y": 800, "width": 230, "height": 65,
+      "strokeColor": "#f472b6", "backgroundColor": "#3f0020", "fillStyle": "solid",
+      "strokeWidth": 1, "roughness": 0, "roundness": { "type": 3 }
+    },
+    {
+      "id": "category-enum-label", "type": "text", "x": 383, "y": 808,
+      "text": "TaskCategory (enum)\nTracking | Flicking | Switching\nClicking | Other", "fontSize": 10, "fontFamily": 1,
+      "textAlign": "left", "strokeColor": "#fce7f3"
+    }
+  ],
+  "appState": {
+    "viewBackgroundColor": "#0d0d0d",
+    "gridSize": null,
+    "zoom": { "value": 0.8 }
+  },
+  "files": {}
+}

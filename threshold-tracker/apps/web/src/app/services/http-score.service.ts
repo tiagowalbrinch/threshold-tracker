@@ -1,25 +1,31 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Score } from '../models/score.model';
 import { ScoreService } from './score.service';
-
-const API_BASE = 'https://your-backend.com/api';
+import { environment } from '../../environments/environment';
 
 @Injectable()
 export class HttpScoreService extends ScoreService {
-  constructor(private http: HttpClient) { super(); }
+  private http = inject(HttpClient);
 
   getByTask(taskId: string): Observable<Score[]> {
-    return this.http.get<Score[]>(`${API_BASE}/scores?task_id=${taskId}`);
+    return this.http.get<Score[]>(`${environment.apiUrl}/scores?task_id=${taskId}`);
   }
+
+  getByTaskMine(taskId: string): Observable<Score[]> {
+    return this.http.get<Score[]>(`${environment.apiUrl}/scores?task_id=${taskId}&mine=true`);
+  }
+
   getAll(): Observable<Score[]> {
-    return this.http.get<Score[]>(`${API_BASE}/scores`);
+    return this.http.get<Score[]>(`${environment.apiUrl}/scores`);
   }
+
   create(score: Partial<Score>): Observable<Score> {
-    return this.http.post<Score>(`${API_BASE}/scores`, score);
+    return this.http.post<Score>(`${environment.apiUrl}/scores`, score);
   }
+
   delete(id: string): Observable<void> {
-    return this.http.delete<void>(`${API_BASE}/scores/${id}`);
+    return this.http.delete<void>(`${environment.apiUrl}/scores/${id}`);
   }
 }

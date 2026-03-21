@@ -10,7 +10,12 @@ import { format } from 'date-fns';
 })
 export class ScoreHistoryTableComponent {
   @Input() scores: Score[] = [];
+  @Input() currentUserId: string | undefined = undefined;
   @Output() delete = new EventEmitter<string>();
 
   formatDate(d: string) { return format(new Date(d), 'dd/MM/yyyy HH:mm'); }
+
+  canDelete(score: Score): boolean {
+    return !!this.currentUserId && score.user_id === this.currentUserId;
+  }
 }

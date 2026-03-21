@@ -28,6 +28,42 @@
 
       <!-- Right side -->
       <div class="flex items-center gap-3">
+        <!-- Auth controls -->
+        @if (authService.isLoggedIn()) {
+          <div class="relative hidden md:block">
+            <button (click)="showUserMenu.set(!showUserMenu())"
+              class="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-white transition-colors">
+              <div class="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center text-xs font-bold">
+                {{ (authService.currentUser()?.displayName ?? '?').charAt(0).toUpperCase() }}
+              </div>
+              {{ authService.currentUser()?.displayName }}
+            </button>
+            @if (showUserMenu()) {
+              <div class="absolute right-0 top-full mt-2 w-48 bg-[#0f0f17] border border-white/10 rounded-xl shadow-xl overflow-hidden">
+                <a routerLink="/profile"
+                  class="flex items-center gap-2 px-4 py-3 text-sm text-white/70 hover:text-white hover:bg-white/5 transition-colors">
+                  Profile Settings
+                </a>
+                <button (click)="logout()"
+                  class="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-400 hover:bg-red-400/10 transition-colors">
+                  Sign Out
+                </button>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="hidden md:flex items-center gap-2">
+            <a routerLink="/login"
+              class="px-3 py-1.5 text-sm text-white/60 hover:text-white transition-colors">
+              Sign In
+            </a>
+            <a routerLink="/register"
+              class="px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-sm rounded-lg font-medium transition-colors">
+              Register
+            </a>
+          </div>
+        }
+
         <button class="md:hidden p-2 text-white/40" (click)="mobileMenuOpen.set(!mobileMenuOpen())">
           @if (!mobileMenuOpen()) {
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24"
@@ -47,11 +83,30 @@
 
     <!-- Mobile Nav -->
     @if (mobileMenuOpen()) {
-      <div class="md:hidden border-t border-white/5 bg-[#08080d]/95 p-4">
+      <div class="md:hidden border-t border-white/5 bg-[#08080d]/95 p-4 space-y-1">
         <a routerLink="/dashboard" (click)="mobileMenuOpen.set(false)"
           class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-white/50">
           Dashboard
         </a>
+        @if (authService.isLoggedIn()) {
+          <a routerLink="/profile" (click)="mobileMenuOpen.set(false)"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-white/50">
+            Profile Settings
+          </a>
+          <button (click)="logout()"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-400">
+            Sign Out
+          </button>
+        } @else {
+          <a routerLink="/login" (click)="mobileMenuOpen.set(false)"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-white/50">
+            Sign In
+          </a>
+          <a routerLink="/register" (click)="mobileMenuOpen.set(false)"
+            class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-violet-400">
+            Register
+          </a>
+        }
       </div>
     }
   </header>

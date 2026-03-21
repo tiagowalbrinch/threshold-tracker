@@ -31,18 +31,22 @@
         </div>
       </div>
       <div class="flex items-center gap-2 pl-11 sm:pl-0">
-        <button (click)="showSettings.set(!showSettings())"
-          class="p-2 text-white/40 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
-          ⚙️
-        </button>
-        <button (click)="showDeleteConfirm.set(true)"
-          class="p-2 text-white/40 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors">
-          🗑️
-        </button>
-        <button (click)="showAddScore.set(true)"
-          class="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg font-medium transition-colors">
-          + Nova Pontuação
-        </button>
+        @if (isCreator()) {
+          <button (click)="showSettings.set(!showSettings())"
+            class="p-2 text-white/40 hover:text-white hover:bg-white/5 rounded-lg transition-colors" title="Threshold settings">
+            ⚙️
+          </button>
+          <button (click)="showDeleteConfirm.set(true)"
+            class="p-2 text-white/40 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Delete task">
+            🗑️
+          </button>
+        }
+        @if (authService.isLoggedIn()) {
+          <button (click)="showAddScore.set(true)"
+            class="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg font-medium transition-colors">
+            + Add Score
+          </button>
+        }
       </div>
     </div>
 
@@ -79,16 +83,27 @@
 
     <!-- Chart -->
     <div class="bg-white/[0.03] rounded-2xl p-5 border border-white/5 mb-6">
-      <h2 class="text-white/60 text-sm font-medium uppercase tracking-wider mb-4">Evolução de Pontuação</h2>
+      <h2 class="text-white/60 text-sm font-medium uppercase tracking-wider mb-4">Score History</h2>
       <app-score-chart [scores]="scores()" [threshold]="task()!.threshold || 0"></app-score-chart>
     </div>
 
     <!-- History Table -->
     <div class="bg-white/[0.03] rounded-2xl border border-white/5 overflow-hidden">
-      <div class="px-5 py-4 border-b border-white/5">
-        <h2 class="text-white/60 text-sm font-medium uppercase tracking-wider">Histórico de Pontuações</h2>
+      <div class="px-5 py-4 border-b border-white/5 flex items-center justify-between">
+        <h2 class="text-white/60 text-sm font-medium uppercase tracking-wider">Score History</h2>
+        @if (authService.isLoggedIn()) {
+          <button (click)="toggleMyScores()"
+            class="text-xs px-3 py-1.5 rounded-lg transition-colors"
+            [class]="showMyScores() ? 'bg-violet-600 text-white' : 'bg-white/5 text-white/40 hover:text-white/60'">
+            My Scores
+          </button>
+        }
       </div>
-      <app-score-history-table [scores]="scores()" (delete)="onDeleteScore($event)"></app-score-history-table>
+      <app-score-history-table
+        [scores]="scores()"
+        [currentUserId]="authService.currentUser()?.userId"
+        (delete)="onDeleteScore($event)">
+      </app-score-history-table>
     </div>
   </div>
 
@@ -96,13 +111,13 @@
   @if (showDeleteConfirm()) {
     <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
       <div class="bg-[#0f0f17] border border-white/10 rounded-2xl p-6 max-w-md w-full">
-        <h3 class="text-white font-semibold text-lg mb-2">Excluir Task</h3>
-        <p class="text-white/40 text-sm mb-6">Isso irá excluir a task e todas as pontuações associadas. Esta ação não pode ser desfeita.</p>
+        <h3 class="text-white font-semibold text-lg mb-2">Delete Task</h3>
+        <p class="text-white/40 text-sm mb-6">This will delete the task and all associated scores. This action cannot be undone.</p>
         <div class="flex gap-3 justify-end">
           <button (click)="showDeleteConfirm.set(false)"
-            class="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg text-sm">Cancelar</button>
+            class="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg text-sm">Cancel</button>
           <button (click)="onDeleteTask()"
-            class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm">Excluir</button>
+            class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm">Delete</button>
         </div>
       </div>
     </div>
@@ -112,6 +127,9 @@
   @if (showAddScore()) {
     <app-add-score-dialog
       [currentPB]="task()!.personal_best || 0"
+      [defaultSensitivity]="profileDefaults()?.default_sensitivity"
+      [defaultFov]="profileDefaults()?.default_fov"
+      [defaultDpi]="profileDefaults()?.default_dpi"
       (close)="showAddScore.set(false)"
       (save)="onAddScore($event)">
     </app-add-score-dialog>

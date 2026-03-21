@@ -8,4 +8,5 @@ export interface Score {
   dpi?: number;
   notes?: string;
   created_date?: string;
+  user_id?: string;
 }
