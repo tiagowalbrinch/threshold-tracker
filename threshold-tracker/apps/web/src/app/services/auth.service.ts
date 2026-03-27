@@ -1,7 +1,8 @@
 import { Injectable, computed, inject, signal, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { isPlatformBrowser } from '@angular/common';
-import { tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { tap, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface AuthUser {
@@ -24,6 +25,10 @@ export class AuthService {
   private _currentUser = signal<AuthUser | null>(this.loadUserFromToken());
   currentUser = this._currentUser.asReadonly();
   isLoggedIn = computed(() => this._currentUser() !== null);
+
+  private _aimlabsUsername = signal<string | null>(null);
+  aimlabsUsername = this._aimlabsUsername.asReadonly();
+  hasAimlabsUsername = computed(() => !!this._aimlabsUsername());
 
   private loadUserFromToken(): AuthUser | null {
     if (!isPlatformBrowser(this.platformId)) return null;
@@ -63,6 +68,14 @@ export class AuthService {
       localStorage.removeItem('auth_token');
     }
     this._currentUser.set(null);
+    this._aimlabsUsername.set(null);
+  }
+
+  loadProfile(): Observable<string | null> {
+    return this.http.get<{ aimlabs_username: string | null }>(`${environment.apiUrl}/profile`).pipe(
+      tap(p => this._aimlabsUsername.set(p.aimlabs_username ?? null)),
+      map(p => p.aimlabs_username ?? null)
+    );
   }
 
   private handleAuthResponse(res: AuthResponse) {

@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Task } from '../models/task.model';
+import { UserTaskStat, TaskCatalogItem, CatalogParams, MyTasksParams } from '../models/task.model';
+import { PagedResponse } from '../models/score.model';
 
 @Injectable()
 export abstract class TaskService {
-  abstract getAll(): Observable<Task[]>;
-  abstract getById(id: string): Observable<Task>;
-  abstract create(task: Partial<Task>): Observable<Task>;
-  abstract update(id: string, data: Partial<Task>): Observable<Task>;
-  abstract delete(id: string): Observable<void>;
+  abstract getAll(params?: MyTasksParams): Observable<UserTaskStat[]>;
+  abstract getById(id: string): Observable<UserTaskStat>;
+  abstract setThreshold(taskId: string, value: number): Observable<UserTaskStat>;
+  abstract getCatalog(params?: CatalogParams): Observable<PagedResponse<TaskCatalogItem>>;
 }

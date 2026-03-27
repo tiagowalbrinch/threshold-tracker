@@ -8,8 +8,8 @@ public static class ApplicationExtensions
     {
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IProfileService, ProfileService>();
-        services.AddScoped<IAimTaskService, AimTaskService>();
-        services.AddScoped<IScoreAttemptService, ScoreAttemptService>();
+        services.AddScoped<IUserTaskStatService, UserTaskStatService>();
+        services.AddScoped<ISyncService, SyncService>();
 
         return services;
     }

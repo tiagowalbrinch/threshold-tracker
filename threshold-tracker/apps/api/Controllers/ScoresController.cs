@@ -9,41 +9,24 @@ namespace ThresholdTracker.Api.Controllers;
 
 [ApiController]
 [Route("scores")]
-public class ScoresController(IScoreAttemptService scoreService) : ControllerBase
+[Authorize]
+public class ScoresController(IUserTaskStatService taskStatService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetScores(
-        [FromQuery(Name = "task_id")] Guid taskId,
-        [FromQuery] bool mine = false,
-        CancellationToken ct = default)
-    {
-        string? userId = null;
-        if (mine)
-        {
-            userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-            if (userId is null)
-                return Unauthorized();
-        }
+    public async Task<IReadOnlyList<PlayAttemptResponse>> Get(
+        [FromQuery(Name = "task_id")] string taskId,
+        [FromQuery] DateTime? from,
+        [FromQuery] DateTime? to,
+        CancellationToken ct) =>
+        await taskStatService.GetPlaysAsync(UserId, taskId, from, to, ct);
 
-        var scores = await scoreService.GetScoresAsync(taskId, userId, ct);
-        return Ok(scores);
-    }
+    [HttpGet("paged")]
+    public async Task<PagedResponse<PlayAttemptResponse>> GetPaged(
+        [FromQuery(Name = "task_id")] string taskId,
+        [FromQuery] int page = 1,
+        [FromQuery(Name = "page_size")] int pageSize = 25,
+        CancellationToken ct = default) =>
+        await taskStatService.GetPlaysPagedAsync(UserId, taskId, page, pageSize, ct);
 
-    [HttpPost]
-    [Authorize]
-    public async Task<IActionResult> AddScore([FromBody] ScoreCreateRequest request, CancellationToken ct)
-    {
-        var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
-        var score = await scoreService.AddScoreAsync(request, userId, ct);
-        return Created(string.Empty, score);
-    }
-
-    [HttpDelete("{id:guid}")]
-    [Authorize]
-    public async Task<IActionResult> DeleteScore(Guid id, CancellationToken ct)
-    {
-        var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
-        await scoreService.DeleteScoreAsync(id, userId, ct);
-        return NoContent();
-    }
+    private string UserId => User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
 }

@@ -5,6 +5,7 @@ import { TaskDetailsComponent } from './features/task-details/task-details.compo
 import { LoginComponent } from './features/login/login.component';
 import { RegisterComponent } from './features/register/register.component';
 import { ProfileComponent } from './features/profile/profile.component';
+import { LeaderboardComponent } from './features/leaderboard/leaderboard.component';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -17,6 +18,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent },
       { path: 'task/:id', component: TaskDetailsComponent },
+      { path: 'leaderboard', component: LeaderboardComponent },
       { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
     ]
   }

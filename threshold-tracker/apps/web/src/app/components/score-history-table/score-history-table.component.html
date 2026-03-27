@@ -1,9 +1,16 @@
-@if (scores.length === 0) {
+@if (loading()) {
+  <div class="py-8 flex justify-center">
+    <div class="w-5 h-5 border-2 border-white/20 border-t-violet-500 rounded-full animate-spin"></div>
+  </div>
+}
+
+@if (!loading() && totalCount() === 0) {
   <div class="text-center py-12 text-white/20 text-sm">
     No scores recorded yet
   </div>
 }
-@if (scores.length > 0) {
+
+@if (!loading() && totalCount() > 0) {
   <div class="overflow-x-auto">
     <table class="w-full text-sm">
       <thead>
@@ -11,42 +18,39 @@
           <th class="text-left py-3 px-4 font-medium">#</th>
           <th class="text-left py-3 px-4 font-medium">Score</th>
           <th class="text-left py-3 px-4 font-medium">Date</th>
-          <th class="text-left py-3 px-4 font-medium">Sense</th>
-          <th class="text-left py-3 px-4 font-medium">FOV</th>
-          <th class="text-left py-3 px-4 font-medium">DPI</th>
-          <th class="text-right py-3 px-4 font-medium"></th>
         </tr>
       </thead>
       <tbody>
-        @for (score of scores; track score.id; let i = $index) {
-          <tr class="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-            <td class="py-3 px-4 text-white/30">{{ scores.length - i }}</td>
+        @for (s of pagedScores(); track s.played_at; let i = $index) {
+          <tr class="border-b border-white/5 hover:bg-white/[0.02] transition-colors"
+            [class.text-violet-400]="threshold > 0 && s.score >= threshold">
+            <td class="py-3 px-4 text-white/30">{{ totalCount() - firstItem() - i + 1 }}</td>
             <td class="py-3 px-4">
-              <div class="flex items-center gap-2">
-                <span class="text-white font-medium">{{ score.value.toLocaleString() }}</span>
-                @if (score.is_pb) {
-                  <span class="text-amber-400 text-xs">🏆</span>
-                }
-                @if (currentUserId && score.user_id === currentUserId) {
-                  <span class="text-xs px-1.5 py-0.5 bg-violet-600/20 text-violet-400 rounded">you</span>
-                }
-              </div>
+              <span class="font-medium">{{ s.score.toLocaleString() }}</span>
             </td>
-            <td class="py-3 px-4 text-white/40">{{ score.created_date ? formatDate(score.created_date) : '—' }}</td>
-            <td class="py-3 px-4 text-white/40">{{ score.sensitivity || '—' }}</td>
-            <td class="py-3 px-4 text-white/40">{{ score.fov || '—' }}</td>
-            <td class="py-3 px-4 text-white/40">{{ score.dpi || '—' }}</td>
-            <td class="py-3 px-4 text-right">
-              @if (canDelete(score)) {
-                <button (click)="delete.emit(score.id)"
-                  class="p-1.5 text-white/20 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors">
-                  🗑️
-                </button>
-              }
-            </td>
+            <td class="py-3 px-4 text-white/40">{{ formatDate(s.played_at) }}</td>
           </tr>
         }
       </tbody>
     </table>
   </div>
+
+  @if (totalPages() > 1) {
+    <div class="flex items-center justify-between px-4 py-3 border-t border-white/5">
+      <span class="text-white/30 text-xs">
+        {{ firstItem() }}–{{ lastItem() }} of {{ totalCount() }}
+      </span>
+      <div class="flex items-center gap-2">
+        <button (click)="loadPage(page() - 1)" [disabled]="page() === 1"
+          class="px-3 py-1 text-xs text-white/40 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed bg-white/5 hover:bg-white/10 rounded-lg transition-colors">
+          Prev
+        </button>
+        <span class="text-white/30 text-xs px-1">{{ page() }} / {{ totalPages() }}</span>
+        <button (click)="loadPage(page() + 1)" [disabled]="page() === totalPages()"
+          class="px-3 py-1 text-xs text-white/40 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed bg-white/5 hover:bg-white/10 rounded-lg transition-colors">
+          Next
+        </button>
+      </div>
+    </div>
+  }
 }

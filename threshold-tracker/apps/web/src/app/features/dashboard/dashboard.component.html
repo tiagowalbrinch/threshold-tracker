@@ -1,103 +1,184 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
 
-  <!-- Hero -->
-  <div class="mb-10">
+  <!-- Hero + Tabs -->
+  <div class="mb-8">
     <h1 class="text-3xl sm:text-4xl font-bold text-white mb-2">Tasks</h1>
-    <p class="text-white/40 text-sm">Track your scores and set thresholds for each aim training task</p>
+    <p class="text-white/40 text-sm mb-6">
+      @if (activeTab() === 'my-tasks') {
+        Your Aimlabs tasks — set thresholds and track your progress
+      } @else {
+        All registered tasks — discover what others are playing
+      }
+    </p>
+
+    <!-- Toggle tabs (only for logged users) -->
+    @if (authService.isLoggedIn()) {
+      <div class="flex gap-1 bg-white/5 rounded-xl p-1 w-fit">
+        <button (click)="onTabChange('my-tasks')"
+          class="px-5 py-2 rounded-lg text-sm font-medium transition-colors"
+          [ngClass]="activeTab() === 'my-tasks' ? 'bg-violet-600 text-white' : 'text-white/40 hover:text-white/60'">
+          My Tasks
+        </button>
+        <button (click)="onTabChange('catalog')"
+          class="px-5 py-2 rounded-lg text-sm font-medium transition-colors"
+          [ngClass]="activeTab() === 'catalog' ? 'bg-violet-600 text-white' : 'text-white/40 hover:text-white/60'">
+          All Tasks
+        </button>
+      </div>
+    }
   </div>
 
   <!-- Controls -->
-  <div class="flex flex-col sm:flex-row gap-3 mb-8">
-    <div class="relative flex-1">
-      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20"
-        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      <input [value]="search()" (input)="search.set($any($event.target).value)"
-        placeholder="Search task..."
-        class="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/20 outline-none focus:border-white/20" />
-    </div>
+  <div class="flex flex-col gap-3 mb-6">
 
-    <div class="flex gap-2 overflow-x-auto pb-1">
-      @for (cat of categories; track cat) {
-        <button (click)="filterCategory.set(cat)"
-          class="px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors"
-          [ngClass]="filterCategory() === cat ? 'bg-violet-600 text-white' : 'bg-white/5 text-white/40 hover:text-white/60'">
-          {{ categoryLabel(cat) }}
+    <!-- Row 1: Search + Sync -->
+    <div class="flex gap-3">
+      <div class="relative flex-1">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20"
+          xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input [value]="search()" (input)="search.set($any($event.target).value)"
+          (keydown.enter)="onApplyFilters()"
+          placeholder="Search task..."
+          class="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/20 outline-none focus:border-white/20" />
+      </div>
+
+      @if (authService.isLoggedIn() && activeTab() === 'my-tasks') {
+        <button (click)="onSync()" [disabled]="syncing()"
+          class="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white rounded-lg font-medium transition-colors shrink-0">
+          @if (syncing()) {
+            <span class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+            Syncing...
+          } @else {
+            Sync Aimlabs
+          }
         </button>
       }
     </div>
 
-    @if (authService.isLoggedIn()) {
-      <button (click)="showAddTask.set(true); duplicateTaskId.set(null)"
-        class="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg font-medium transition-colors shrink-0">
-        + New Task
-      </button>
+    <!-- Row 2: Category select -->
+    <div class="flex gap-2">
+      <select [value]="filterCategory()" (change)="filterCategory.set($any($event.target).value); onApplyFilters()"
+        class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-xs outline-none focus:border-white/20 cursor-pointer [&>option]:bg-[#0f0f17] [&>option]:text-white">
+        @for (cat of categories; track cat) {
+          <option [value]="cat">{{ categoryLabel(cat) }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Row 3: Advanced filters (My Tasks — logged only) -->
+    @if (authService.isLoggedIn() && activeTab() === 'my-tasks') {
+      <div class="flex flex-wrap gap-2 items-center">
+        <select [value]="orderBy()" (change)="orderBy.set($any($event.target).value); onApplyFilters()"
+          class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-xs outline-none focus:border-white/20 cursor-pointer [&>option]:bg-[#0f0f17] [&>option]:text-white">
+          <option value="recently_played">Recently Played</option>
+          <option value="most_played">Most Played</option>
+          <option value="position_in_rank">Position in Rank</option>
+        </select>
+
+        <select [value]="dateRange()" (change)="dateRange.set($any($event.target).value); onApplyFilters()"
+          class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-xs outline-none focus:border-white/20 cursor-pointer [&>option]:bg-[#0f0f17] [&>option]:text-white">
+          @for (opt of dateRangeOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    <!-- Row 3: Catalog order -->
+    @if (activeTab() === 'catalog') {
+      <div class="flex gap-2 items-center">
+        <select [value]="catalogOrderBy()" (change)="catalogOrderBy.set($any($event.target).value); onApplyFilters()"
+          class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-xs outline-none focus:border-white/20 cursor-pointer [&>option]:bg-[#0f0f17] [&>option]:text-white">
+          <option value="recently_played">Recently Played</option>
+          <option value="most_played">Most Played</option>
+        </select>
+      </div>
     }
   </div>
 
-  <!-- Loading -->
-  @if (loading()) {
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      @for (i of [1,2,3]; track i) {
-        <div class="bg-white/[0.03] rounded-2xl p-5 h-48 animate-pulse border border-white/5"></div>
-      }
-    </div>
-  }
+  <!-- ───── MY TASKS view ───── -->
+  @if (activeTab() === 'my-tasks') {
 
-  <!-- Empty State -->
-  @if (!loading() && filteredTasks().length === 0) {
-    <div class="flex flex-col items-center justify-center py-24 text-center">
-      <div class="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-white/10" viewBox="0 0 24 24"
-          fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/>
-          <line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/>
-          <line x1="12" y1="22" x2="12" y2="18"/>
-        </svg>
+    @if (loadingTasks()) {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        @for (i of [1,2,3]; track i) {
+          <div class="bg-white/[0.03] rounded-2xl p-5 h-48 animate-pulse border border-white/5"></div>
+        }
       </div>
-      <h3 class="text-white/50 font-medium mb-1">
-        {{ tasks().length === 0 ? 'No tasks yet' : 'No results' }}
-      </h3>
-      <p class="text-white/20 text-sm mb-6">
-        {{ tasks().length === 0 ? 'Create your first task to start tracking your progress' : 'Try adjusting your search filters' }}
-      </p>
-      @if (tasks().length === 0 && authService.isLoggedIn()) {
-        <button (click)="showAddTask.set(true)"
-          class="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg font-medium">
-          + Create first task
+    }
+
+    @if (!loadingTasks() && tasks().length === 0) {
+      <div class="flex flex-col items-center justify-center py-24 text-center">
+        <div class="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-white/10" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/>
+            <line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/>
+            <line x1="12" y1="22" x2="12" y2="18"/>
+          </svg>
+        </div>
+        <h3 class="text-white/50 font-medium mb-1">No tasks yet</h3>
+        <p class="text-white/20 text-sm mb-6">
+          Link your Aimlabs account in Profile, then hit Sync Aimlabs to import your tasks.
+        </p>
+        <button (click)="onSync()" [disabled]="syncing()"
+          class="px-4 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white rounded-lg font-medium">
+          Sync Aimlabs
         </button>
-      }
-    </div>
-  }
+      </div>
+    }
 
-  <!-- Task Grid -->
-  @if (!loading() && filteredTasks().length > 0) {
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      @for (task of filteredTasks(); track task.id) {
-        <app-task-card [task]="task" [scoreCount]="0"></app-task-card>
-      }
-    </div>
-  }
-
-  <!-- Infinite Scroll Sentinel -->
-  @if (!loading()) {
-    <div #sentinel class="h-10 w-full"></div>
-    @if (loadingMore()) {
-      <div class="flex justify-center py-4">
-        <div class="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+    @if (!loadingTasks() && tasks().length > 0) {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        @for (task of tasks(); track task.aimlabs_task_id) {
+          <app-task-card [task]="task"></app-task-card>
+        }
       </div>
     }
   }
 
-  <!-- Add Task Modal -->
-  @if (showAddTask()) {
-    <app-add-task-dialog
-      [duplicateTaskId]="duplicateTaskId()"
-      (close)="showAddTask.set(false); duplicateTaskId.set(null)"
-      (save)="onTaskCreated($event)"
-      (goToExisting)="goToExistingTask()">
-    </app-add-task-dialog>
+  <!-- ───── CATALOG view ───── -->
+  @if (activeTab() === 'catalog') {
+
+    @if (loadingCatalog()) {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        @for (i of [1,2,3,4,5,6]; track i) {
+          <div class="bg-white/[0.03] rounded-2xl p-5 h-44 animate-pulse border border-white/5"></div>
+        }
+      </div>
+    }
+
+    @if (!loadingCatalog() && catalogItems().length === 0) {
+      <div class="flex flex-col items-center justify-center py-24 text-center">
+        <p class="text-white/30 text-sm">No tasks found. Try different filters.</p>
+      </div>
+    }
+
+    @if (!loadingCatalog() && catalogItems().length > 0) {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        @for (item of catalogItems(); track item.aimlabs_task_id) {
+          <app-task-catalog-card [task]="item"></app-task-catalog-card>
+        }
+      </div>
+
+      @if (hasMore()) {
+        <div class="flex justify-center">
+          <button (click)="onLoadMore()" [disabled]="loadingMore()"
+            class="px-6 py-2.5 bg-white/5 hover:bg-white/10 disabled:opacity-50 text-white/60 rounded-xl text-sm font-medium transition-colors">
+            @if (loadingMore()) {
+              <span class="flex items-center gap-2">
+                <span class="w-4 h-4 border-2 border-white/20 border-t-white/60 rounded-full animate-spin"></span>
+                Loading...
+              </span>
+            } @else {
+              Load More ({{ catalogTotal() - catalogItems().length }} remaining)
+            }
+          </button>
+        </div>
+      }
+    }
   }
 </div>

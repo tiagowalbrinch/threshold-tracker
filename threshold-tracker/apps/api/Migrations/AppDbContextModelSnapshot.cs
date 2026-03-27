@@ -156,87 +156,120 @@ namespace ThresholdTracker.Migrations
 
             modelBuilder.Entity("ThresholdTracker.Domain.Entities.AimTask", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                    b.Property<string>("AimlabsTaskId")
+                        .HasColumnType("text")
+                        .HasColumnName("aimlabs_task_id");
 
                     b.Property<string>("Category")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("category");
 
-                    b.Property<string>("CreatedByUserId")
+                    b.Property<DateTime>("FirstSeenAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("first_seen_at");
+
+                    b.Property<string>("TaskName")
                         .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("created_by_user_id");
+                        .HasColumnName("task_name");
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("PersonalBest")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("Threshold")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
+                    b.HasKey("AimlabsTaskId");
 
                     b.ToTable("aim_tasks", (string)null);
                 });
 
-            modelBuilder.Entity("ThresholdTracker.Domain.Entities.ScoreAttempt", b =>
+            modelBuilder.Entity("ThresholdTracker.Domain.Entities.PlayAttempt", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                    b.Property<string>("AimlabsUsername")
+                        .HasColumnType("text")
+                        .HasColumnName("aimlabs_username");
 
-                    b.Property<DateTime>("CreatedDate")
+                    b.Property<string>("AimlabsTaskId")
+                        .HasColumnType("text")
+                        .HasColumnName("aimlabs_task_id");
+
+                    b.Property<DateTime>("PlayedAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date");
+                        .HasColumnName("played_at");
 
-                    b.Property<int?>("Dpi")
-                        .HasColumnType("integer");
+                    b.Property<int>("Score")
+                        .HasColumnType("integer")
+                        .HasColumnName("score");
 
-                    b.Property<float?>("Fov")
-                        .HasColumnType("real");
+                    b.HasKey("AimlabsUsername", "AimlabsTaskId", "PlayedAt");
 
-                    b.Property<bool>("IsPb")
-                        .HasColumnType("boolean");
+                    b.HasIndex("AimlabsUsername", "AimlabsTaskId")
+                        .HasDatabaseName("idx_play_attempts_user_task");
 
-                    b.Property<string>("Notes")
-                        .HasColumnType("text");
+                    b.ToTable("play_attempts", (string)null);
+                });
 
-                    b.Property<string>("Sensitivity")
-                        .HasColumnType("text");
+            modelBuilder.Entity("ThresholdTracker.Domain.Entities.UserTaskStat", b =>
+                {
+                    b.Property<string>("AimlabsUsername")
+                        .HasColumnType("text")
+                        .HasColumnName("aimlabs_username");
 
-                    b.Property<Guid>("TaskId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("AimlabsTaskId")
+                        .HasColumnType("text")
+                        .HasColumnName("aimlabs_task_id");
 
-                    b.Property<string>("UserId")
+                    b.Property<double?>("AvgScore")
+                        .HasColumnType("double precision")
+                        .HasColumnName("avg_score");
+
+                    b.Property<string>("Category")
                         .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("category");
+
+                    b.Property<DateTime?>("LastPlayedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_played_at");
+
+                    b.Property<int?>("PersonalBest")
+                        .HasColumnType("integer")
+                        .HasColumnName("personal_best");
+
+                    b.Property<int>("PlayCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("play_count");
+
+                    b.Property<DateTime>("SyncedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("synced_at");
+
+                    b.Property<string>("TaskName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("task_name");
+
+                    b.HasKey("AimlabsUsername", "AimlabsTaskId");
+
+                    b.HasIndex("AimlabsTaskId", "PersonalBest")
+                        .HasDatabaseName("idx_user_task_stats_task_pb");
+
+                    b.ToTable("user_task_stats", (string)null);
+                });
+
+            modelBuilder.Entity("ThresholdTracker.Domain.Entities.UserThreshold", b =>
+                {
+                    b.Property<string>("UserId")
                         .HasColumnType("text")
                         .HasColumnName("user_id");
 
-                    b.Property<int>("Value")
-                        .HasColumnType("integer");
+                    b.Property<string>("AimlabsTaskId")
+                        .HasColumnType("text")
+                        .HasColumnName("aimlabs_task_id");
 
-                    b.HasKey("Id");
+                    b.Property<int>("ThresholdValue")
+                        .HasColumnType("integer")
+                        .HasColumnName("threshold_value");
 
-                    b.HasIndex("TaskId", "CreatedDate")
-                        .HasDatabaseName("idx_score_attempts_task_id_created_date");
+                    b.HasKey("UserId", "AimlabsTaskId");
 
-                    b.ToTable("score_attempts", (string)null);
+                    b.ToTable("user_thresholds", (string)null);
                 });
 
             modelBuilder.Entity("ThresholdTracker.Domain.Identity.ApplicationUser", b =>
@@ -246,6 +279,12 @@ namespace ThresholdTracker.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
+
+                    b.Property<string>("AimlabsUserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AimlabsUsername")
+                        .HasColumnType("text");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -367,20 +406,13 @@ namespace ThresholdTracker.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ThresholdTracker.Domain.Entities.ScoreAttempt", b =>
+            modelBuilder.Entity("ThresholdTracker.Domain.Entities.UserThreshold", b =>
                 {
-                    b.HasOne("ThresholdTracker.Domain.Entities.AimTask", "Task")
-                        .WithMany("Scores")
-                        .HasForeignKey("TaskId")
+                    b.HasOne("ThresholdTracker.Domain.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Task");
-                });
-
-            modelBuilder.Entity("ThresholdTracker.Domain.Entities.AimTask", b =>
-                {
-                    b.Navigation("Scores");
                 });
 #pragma warning restore 612, 618
         }

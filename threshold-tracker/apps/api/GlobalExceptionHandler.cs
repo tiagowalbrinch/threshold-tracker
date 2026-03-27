@@ -20,7 +20,6 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
     {
         var (statusCode, title) = exception switch
         {
-            DuplicateTaskException => (StatusCodes.Status409Conflict, "Duplicate task"),
             UnauthorizedException => (StatusCodes.Status403Forbidden, "Forbidden"),
             ArgumentException => (StatusCodes.Status400BadRequest, "Validation error"),
             KeyNotFoundException => (StatusCodes.Status404NotFound, "Resource not found"),
@@ -38,9 +37,6 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
             Title = title,
             Detail = exception.InnerException?.Message ?? exception.Message
         };
-
-        if (exception is DuplicateTaskException dup)
-            problemDetails.Extensions["existingTaskId"] = dup.ExistingTaskId;
 
         httpContext.Response.StatusCode = statusCode;
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);

@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using ThresholdTracker.Application.Services;
 using ThresholdTracker.Domain.Identity;
-using ThresholdTracker.Domain.Repositories;
+using ThresholdTracker.Infrastructure.AimTrainers;
 using ThresholdTracker.Infrastructure.Persistence;
-using ThresholdTracker.Infrastructure.Repositories;
 
 namespace ThresholdTracker.Infrastructure;
 
@@ -54,8 +54,11 @@ public static class InfrastructureExtensions
             };
         });
 
-        services.AddScoped<IAimTaskRepository, AimTaskRepository>();
-        services.AddScoped<IScoreAttemptRepository, ScoreAttemptRepository>();
+        services.AddHttpClient<IAimTrainerClient, AimlabsClient>(client =>
+        {
+            client.BaseAddress = new Uri("https://api.aimlab.gg/graphql");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+        });
 
         return services;
     }

@@ -1,29 +1,91 @@
-<div class="space-y-3">
-  <div class="relative h-3 bg-white/5 rounded-full overflow-hidden">
-    @if (threshold > 0) {
-      <div class="absolute top-0 bottom-0 w-0.5 bg-cyan-400 z-10"
-        [style.left.%]="thresholdPct">
-      </div>
-    }
+<div class="bg-white/[0.03] border border-white/5 rounded-2xl p-6 space-y-5">
+  @if (threshold > 0) {
+    <!-- Status badge -->
+    <div class="flex items-center justify-between">
+      @if (aboveThreshold) {
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+          ACIMA DA META
+        </span>
+      } @else {
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/20">
+          <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+          ABAIXO DA META
+        </span>
+      }
+      @if (latestScore > 0) {
+        <span class="text-2xl font-bold" [ngClass]="aboveThreshold ? 'text-emerald-400' : 'text-rose-400'">
+          {{ latestScore.toLocaleString() }}
+        </span>
+      }
+    </div>
+
+    <!-- Gap message -->
     @if (latestScore > 0) {
-      <div class="h-full rounded-full transition-all duration-700"
-        [ngClass]="aboveThreshold ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' : 'bg-gradient-to-r from-violet-600 to-violet-400'"
-        [style.width.%]="latestPct">
-      </div>
+      <p class="text-sm" [ngClass]="aboveThreshold ? 'text-emerald-400/70' : 'text-white/40'">
+        @if (aboveThreshold) {
+          {{ (-gapToThreshold).toLocaleString() }} pontos acima da meta
+        } @else {
+          {{ gapToThreshold.toLocaleString() }} pontos para atingir a meta
+        }
+      </p>
     }
-  </div>
-  <div class="flex items-center gap-4 text-xs text-white/40">
-    @if (threshold > 0) {
+
+    <!-- Progress bar -->
+    <div class="relative h-5 bg-white/5 rounded-full overflow-visible">
+      <!-- PB marker -->
+      @if (personalBest > 0) {
+        <div class="absolute -top-1 bottom-0 w-0.5 bg-amber-400/60 z-20" [style.left.%]="pbPct"></div>
+      }
+      <!-- Threshold marker -->
+      <div class="absolute -top-1 bottom-0 w-0.5 bg-cyan-400 z-10" [style.left.%]="thresholdPct"></div>
+      <!-- Score bar -->
+      @if (latestScore > 0) {
+        <div class="h-full rounded-full transition-all duration-700"
+          [ngClass]="aboveThreshold ? 'bg-gradient-to-r from-emerald-600 to-emerald-400' : 'bg-gradient-to-r from-violet-700 to-violet-500'"
+          [style.width.%]="latestPct">
+        </div>
+      }
+    </div>
+
+    <!-- Legend -->
+    <div class="flex items-center gap-4 text-xs text-white/40">
       <div class="flex items-center gap-1.5">
-        <div class="w-2 h-2 rounded-full bg-cyan-400"></div>
-        <span>Threshold: {{ threshold.toLocaleString() }}</span>
+        <div class="w-2 h-0.5 bg-cyan-400"></div>
+        <span>Meta: {{ threshold.toLocaleString() }}</span>
+      </div>
+      @if (personalBest > 0) {
+        <div class="flex items-center gap-1.5">
+          <div class="w-2 h-0.5 bg-amber-400/60"></div>
+          <span>PB: {{ personalBest.toLocaleString() }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- Trend pill -->
+    @if (scores.length >= 2) {
+      <div class="flex items-center gap-2">
+        <span class="text-white/30 text-xs">Últimas 5 sessões:</span>
+        @if (trendDirection === 'up') {
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/15">
+            ↑ +{{ trendDelta }}
+          </span>
+        } @else if (trendDirection === 'down') {
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/15">
+            ↓ {{ trendDelta }}
+          </span>
+        } @else {
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/5 text-white/30 border border-white/10">
+            — estável
+          </span>
+        }
       </div>
     }
-    @if (personalBest > 0) {
-      <div class="flex items-center gap-1.5">
-        <div class="w-2 h-2 rounded-full bg-amber-400"></div>
-        <span>PB: {{ personalBest.toLocaleString() }}</span>
-      </div>
-    }
-  </div>
+  } @else {
+    <!-- No threshold set -->
+    <div class="text-center py-2">
+      <p class="text-white/30 text-sm">Nenhuma meta definida para esta task.</p>
+      <p class="text-white/20 text-xs mt-1">Defina uma meta nas configurações para acompanhar seu progresso.</p>
+    </div>
+  }
 </div>

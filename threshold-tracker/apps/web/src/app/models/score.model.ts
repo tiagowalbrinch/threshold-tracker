@@ -1,12 +1,12 @@
-export interface Score {
-  id: string;
+export interface PlayAttempt {
   task_id: string;
-  value: number;
-  is_pb?: boolean;
-  sensitivity?: string;
-  fov?: number;
-  dpi?: number;
-  notes?: string;
-  created_date?: string;
-  user_id?: string;
+  score: number;
+  played_at: string;
+}
+
+export interface PagedResponse<T> {
+  items: T[];
+  total_count: number;
+  page: number;
+  page_size: number;
 }

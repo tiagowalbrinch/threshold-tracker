@@ -8,4 +8,6 @@ public class ApplicationUser : IdentityUser
     public string? DefaultSensitivity { get; set; }
     public float? DefaultFov { get; set; }
     public int? DefaultDpi { get; set; }
+    public string? AimlabsUsername { get; set; }
+    public string? AimlabsUserId { get; set; }
 }

@@ -1,0 +1,43 @@
+<a [routerLink]="['/task', task.aimlabs_task_id]">
+  <div class="group relative bg-gradient-to-br border rounded-2xl p-5 hover:scale-[1.02] transition-all duration-300 cursor-pointer"
+    [ngClass]="colorClass">
+    <div class="flex items-start justify-between mb-4">
+      <div class="p-2.5 rounded-xl bg-black/30" [ngClass]="textColor">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/>
+          <line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/>
+          <line x1="12" y1="22" x2="12" y2="18"/>
+        </svg>
+      </div>
+      <span class="text-xs font-medium text-white/40 uppercase tracking-wider">{{ task.category }}</span>
+    </div>
+
+    <h3 class="text-white font-semibold text-lg mb-3 truncate">{{ task.task_name }}</h3>
+
+    <div class="grid grid-cols-2 gap-2 mb-3">
+      <div>
+        <p class="text-white/40 text-xs mb-0.5">Best Score</p>
+        <p class="text-base font-bold" [ngClass]="task.best_score ? textColor : 'text-white/20'">
+          {{ task.best_score ? task.best_score.toLocaleString() : '—' }}
+        </p>
+      </div>
+      <div>
+        <p class="text-white/40 text-xs mb-0.5">Avg Score</p>
+        <p class="text-base font-bold text-white/70">{{ avgScoreDisplay }}</p>
+      </div>
+    </div>
+
+    <div class="pt-3 border-t border-white/5 flex items-center justify-between">
+      @if (task.best_player_nick) {
+        <div class="flex items-center gap-1.5 min-w-0">
+          <span class="text-amber-400/60 text-xs">🏆</span>
+          <span class="text-white/50 text-xs truncate">{{ task.best_player_nick }}</span>
+        </div>
+      } @else {
+        <span class="text-white/20 text-xs">No plays yet</span>
+      }
+      <span class="text-white/30 text-xs shrink-0">{{ task.player_count }} {{ task.player_count === 1 ? 'player' : 'players' }}</span>
+    </div>
+  </div>
+</a>

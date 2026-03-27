@@ -27,7 +27,7 @@
       }
       @if (success()) {
         <div class="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm rounded-lg px-4 py-3">
-          Profile saved successfully.
+          {{ success() }}
         </div>
       }
 
@@ -42,8 +42,27 @@
           class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white outline-none focus:border-white/20" />
       </div>
 
+      <!-- Aimlabs Integration -->
+      <div class="border border-white/10 rounded-xl p-4 space-y-3">
+        <h3 class="text-white/60 text-xs uppercase tracking-wider">Aimlabs Account</h3>
+        <div class="flex gap-2">
+          <input [value]="aimlabsUsername()" (input)="aimlabsUsername.set($any($event.target).value)"
+            placeholder="Your Aimlabs username"
+            class="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/20 outline-none focus:border-white/20" />
+          <button (click)="onSync()" [disabled]="syncing() || saving() || usernameChanged() || !aimlabsUsername()"
+            class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
+            @if (syncing()) { Syncing... } @else { Sync Now }
+          </button>
+        </div>
+        @if (usernameChanged()) {
+          <p class="text-amber-400/80 text-xs">Username alterado — salve antes de sincronizar.</p>
+        } @else {
+          <p class="text-white/20 text-xs">Save your profile first after changing the username, then sync.</p>
+        }
+      </div>
+
       <div>
-        <h3 class="text-white/60 text-xs uppercase tracking-wider mb-3">Default Settings for Score Attempts</h3>
+        <h3 class="text-white/60 text-xs uppercase tracking-wider mb-3">Default Settings</h3>
         <div class="grid grid-cols-3 gap-3">
           <div>
             <label class="text-white/40 text-xs block mb-2">Sensitivity</label>

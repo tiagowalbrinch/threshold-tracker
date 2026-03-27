@@ -9,46 +9,27 @@ namespace ThresholdTracker.Api.Controllers;
 
 [ApiController]
 [Route("tasks")]
-public class TasksController(IAimTaskService taskService) : ControllerBase
+[Authorize]
+public class TasksController(IUserTaskStatService taskStatService) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetTasks([FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
-    {
-        var result = await taskService.GetTasksAsync(page, pageSize, ct);
-        return Ok(result);
-    }
+    public async Task<IReadOnlyList<UserTaskStatResponse>> GetAll(
+        CancellationToken ct,
+        [FromQuery] string? name = null,
+        [FromQuery] string? category = null,
+        [FromQuery] string order_by = "recently_played",
+        [FromQuery] DateTime? played_from = null,
+        [FromQuery] DateTime? played_to = null) =>
+        await taskStatService.GetTasksAsync(UserId, name, category, order_by, played_from, played_to, ct);
 
-    [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetTask(Guid id, CancellationToken ct)
-    {
-        var task = await taskService.GetTaskAsync(id, ct);
-        return Ok(task);
-    }
+    [HttpGet("{taskId}")]
+    public async Task<UserTaskStatResponse> Get(string taskId, CancellationToken ct) =>
+        await taskStatService.GetTaskAsync(UserId, taskId, ct);
 
-    [HttpPost]
-    [Authorize]
-    public async Task<IActionResult> CreateTask([FromBody] TaskCreateRequest request, CancellationToken ct)
-    {
-        var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
-        var task = await taskService.CreateTaskAsync(request, userId, ct);
-        return CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
-    }
+    [HttpPatch("{taskId}/threshold")]
+    public async Task<UserTaskStatResponse> SetThreshold(
+        string taskId, [FromBody] ThresholdUpdateRequest request, CancellationToken ct) =>
+        await taskStatService.SetThresholdAsync(UserId, taskId, request.Value, ct);
 
-    [HttpPatch("{id:guid}")]
-    [Authorize]
-    public async Task<IActionResult> UpdateTask(Guid id, [FromBody] TaskUpdateRequest request, CancellationToken ct)
-    {
-        var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
-        var task = await taskService.UpdateTaskAsync(id, request, userId, ct);
-        return Ok(task);
-    }
-
-    [HttpDelete("{id:guid}")]
-    [Authorize]
-    public async Task<IActionResult> DeleteTask(Guid id, CancellationToken ct)
-    {
-        var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
-        await taskService.DeleteTaskAsync(id, userId, ct);
-        return NoContent();
-    }
+    private string UserId => User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
 }

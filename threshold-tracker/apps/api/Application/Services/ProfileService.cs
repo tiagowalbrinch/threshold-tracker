@@ -22,11 +22,18 @@ public class ProfileService(UserManager<ApplicationUser> userManager) : IProfile
         if (request.DefaultSensitivity is not null) user.DefaultSensitivity = request.DefaultSensitivity;
         if (request.DefaultFov is not null) user.DefaultFov = request.DefaultFov;
         if (request.DefaultDpi is not null) user.DefaultDpi = request.DefaultDpi;
+        if (request.AimlabsUsername is not null)
+        {
+            // Reset cached ID so next sync re-resolves it
+            if (user.AimlabsUsername != request.AimlabsUsername)
+                user.AimlabsUserId = null;
+            user.AimlabsUsername = request.AimlabsUsername;
+        }
 
         await userManager.UpdateAsync(user);
         return ToResponse(user);
     }
 
     private static ProfileResponse ToResponse(ApplicationUser user) =>
-        new(user.Id, user.DisplayName, user.Email!, user.DefaultSensitivity, user.DefaultFov, user.DefaultDpi);
+        new(user.Id, user.DisplayName, user.Email!, user.DefaultSensitivity, user.DefaultFov, user.DefaultDpi, user.AimlabsUsername);
 }

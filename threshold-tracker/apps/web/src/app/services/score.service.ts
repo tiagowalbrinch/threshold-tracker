@@ -1,11 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Score } from '../models/score.model';
+import { PlayAttempt, PagedResponse } from '../models/score.model';
 
 @Injectable()
 export abstract class ScoreService {
-  abstract getByTask(taskId: string): Observable<Score[]>;
-  abstract getAll(): Observable<Score[]>;
-  abstract create(score: Partial<Score>): Observable<Score>;
-  abstract delete(id: string): Observable<void>;
+  abstract getByTask(taskId: string, from?: string, to?: string): Observable<PlayAttempt[]>;
+  abstract getByTaskPaged(taskId: string, page: number, pageSize: number): Observable<PagedResponse<PlayAttempt>>;
 }

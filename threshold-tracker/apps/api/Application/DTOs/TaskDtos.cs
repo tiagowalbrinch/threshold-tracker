@@ -1,6 +1,32 @@
 namespace ThresholdTracker.Application.DTOs;
 
-public record TaskCreateRequest(string Name, string Category, int? Threshold, int? PersonalBest, string? Notes);
-public record TaskUpdateRequest(string? Category, int? Threshold, int? PersonalBest, string? Notes);
-public record TaskResponse(Guid Id, string Name, string Category, int? Threshold, int? PersonalBest, string? Notes, DateTime CreatedDate, string CreatedByUserId);
-public record PagedResponse<T>(IReadOnlyList<T> Items, int TotalCount, int Page, int PageSize, bool HasNextPage);
+public record UserTaskStatResponse(
+    string AimlabsTaskId,
+    string TaskName,
+    string Category,
+    int? PersonalBest,
+    int PlayCount,
+    double? AvgScore,
+    DateTime? LastPlayedAt,
+    int? ThresholdValue,
+    DateTime SyncedAt,
+    double? Last5Avg = null);
+
+public record ThresholdUpdateRequest(int Value);
+
+public record TaskCatalogItemResponse(
+    string AimlabsTaskId,
+    string TaskName,
+    string Category,
+    string? BestPlayerNick,
+    double? AvgScore,
+    int? BestScore,
+    int PlayerCount,
+    int TotalPlays,
+    DateTime? LastPlayedAt);
+
+public record LeaderboardEntryResponse(
+    string DisplayName,
+    int PersonalBest,
+    int PlayCount,
+    DateTime SyncedAt);

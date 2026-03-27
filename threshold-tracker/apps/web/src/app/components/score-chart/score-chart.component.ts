@@ -1,7 +1,7 @@
 import { Component, Input, OnChanges, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
-import { Score } from '../../models/score.model';
+import { PlayAttempt } from '../../models/score.model';
 
 @Component({
   selector: 'app-score-chart',
@@ -10,7 +10,7 @@ import { Score } from '../../models/score.model';
   templateUrl: './score-chart.component.html',
 })
 export class ScoreChartComponent implements OnChanges {
-  @Input() scores: Score[] = [];
+  @Input() scores: PlayAttempt[] = [];
   @Input() threshold = 0;
 
   private platformId = inject(PLATFORM_ID);
@@ -25,7 +25,7 @@ export class ScoreChartComponent implements OnChanges {
       legend: { display: false },
       tooltip: {
         callbacks: {
-          label: (ctx: any) => ctx.raw.toLocaleString()
+          label: (ctx: any) => ctx.raw?.toLocaleString?.() ?? ctx.raw
         }
       }
     },
@@ -37,17 +37,32 @@ export class ScoreChartComponent implements OnChanges {
 
   ngOnChanges() {
     const sorted = [...this.scores].sort(
-      (a, b) => new Date(a.created_date!).getTime() - new Date(b.created_date!).getTime()
+      (a, b) => new Date(a.played_at).getTime() - new Date(b.played_at).getTime()
     );
     this.chartLabels = sorted.map((_, i) => String(i + 1));
-    this.chartData = [{
-      data: sorted.map(s => s.value),
+
+    const datasets: any[] = [{
+      data: sorted.map(s => s.score),
       fill: true,
       borderColor: '#8b5cf6',
       backgroundColor: 'rgba(139,92,246,0.15)',
       tension: 0.3,
-      pointBackgroundColor: sorted.map(s => s.is_pb ? '#f59e0b' : '#8b5cf6'),
-      pointRadius: sorted.map(s => s.is_pb ? 6 : 4),
+      pointBackgroundColor: '#8b5cf6',
+      pointRadius: 4,
     }];
+
+    if (this.threshold > 0) {
+      datasets.push({
+        data: sorted.map(() => this.threshold),
+        borderColor: '#22d3ee',
+        borderWidth: 1.5,
+        borderDash: [6, 4],
+        pointRadius: 0,
+        fill: false,
+        tension: 0,
+      });
+    }
+
+    this.chartData = datasets;
   }
 }

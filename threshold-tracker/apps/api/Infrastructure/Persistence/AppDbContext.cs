@@ -12,8 +12,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
     }
 
-    public DbSet<AimTask> Tasks => Set<AimTask>();
-    public DbSet<ScoreAttempt> ScoreAttempts => Set<ScoreAttempt>();
+    public DbSet<AimTask> AimTasks => Set<AimTask>();
+    public DbSet<UserTaskStat> UserTaskStats => Set<UserTaskStat>();
+    public DbSet<PlayAttempt> PlayAttempts => Set<PlayAttempt>();
+    public DbSet<UserThreshold> UserThresholds => Set<UserThreshold>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -22,29 +24,53 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<AimTask>(entity =>
         {
             entity.ToTable("aim_tasks");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Name).IsRequired();
-            entity.Property(e => e.CreatedDate).HasColumnName("created_date");
-            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
-            entity.Property(e => e.Category)
-                .HasConversion<string>()
-                .HasColumnName("category");
-            entity.HasIndex(e => e.Name).IsUnique();
-            entity.HasMany(e => e.Scores)
-                  .WithOne(e => e.Task)
-                  .HasForeignKey(e => e.TaskId)
-                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasKey(e => e.AimlabsTaskId);
+            entity.Property(e => e.AimlabsTaskId).HasColumnName("aimlabs_task_id");
+            entity.Property(e => e.TaskName).HasColumnName("task_name").IsRequired();
+            entity.Property(e => e.Category).HasColumnName("category").IsRequired();
+            entity.Property(e => e.FirstSeenAt).HasColumnName("first_seen_at");
         });
 
-        modelBuilder.Entity<ScoreAttempt>(entity =>
+        modelBuilder.Entity<UserTaskStat>(entity =>
         {
-            entity.ToTable("score_attempts");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Value).IsRequired();
-            entity.Property(e => e.CreatedDate).HasColumnName("created_date");
+            entity.ToTable("user_task_stats");
+            entity.HasKey(e => new { e.AimlabsUsername, e.AimlabsTaskId });
+            entity.Property(e => e.AimlabsUsername).HasColumnName("aimlabs_username");
+            entity.Property(e => e.AimlabsTaskId).HasColumnName("aimlabs_task_id");
+            entity.Property(e => e.TaskName).HasColumnName("task_name").IsRequired();
+            entity.Property(e => e.Category).HasColumnName("category").IsRequired();
+            entity.Property(e => e.PersonalBest).HasColumnName("personal_best");
+            entity.Property(e => e.PlayCount).HasColumnName("play_count");
+            entity.Property(e => e.AvgScore).HasColumnName("avg_score");
+            entity.Property(e => e.LastPlayedAt).HasColumnName("last_played_at");
+            entity.Property(e => e.SyncedAt).HasColumnName("synced_at");
+            entity.HasIndex(e => new { e.AimlabsTaskId, e.PersonalBest })
+                .HasDatabaseName("idx_user_task_stats_task_pb");
+        });
+
+        modelBuilder.Entity<PlayAttempt>(entity =>
+        {
+            entity.ToTable("play_attempts");
+            entity.HasKey(e => new { e.AimlabsUsername, e.AimlabsTaskId, e.PlayedAt });
+            entity.Property(e => e.AimlabsUsername).HasColumnName("aimlabs_username");
+            entity.Property(e => e.AimlabsTaskId).HasColumnName("aimlabs_task_id");
+            entity.Property(e => e.Score).HasColumnName("score");
+            entity.Property(e => e.PlayedAt).HasColumnName("played_at");
+            entity.HasIndex(e => new { e.AimlabsUsername, e.AimlabsTaskId })
+                .HasDatabaseName("idx_play_attempts_user_task");
+        });
+
+        modelBuilder.Entity<UserThreshold>(entity =>
+        {
+            entity.ToTable("user_thresholds");
+            entity.HasKey(e => new { e.UserId, e.AimlabsTaskId });
             entity.Property(e => e.UserId).HasColumnName("user_id");
-            entity.HasIndex(e => new { e.TaskId, e.CreatedDate })
-                .HasDatabaseName("idx_score_attempts_task_id_created_date");
+            entity.Property(e => e.AimlabsTaskId).HasColumnName("aimlabs_task_id");
+            entity.Property(e => e.ThresholdValue).HasColumnName("threshold_value");
+            entity.HasOne<ApplicationUser>()
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

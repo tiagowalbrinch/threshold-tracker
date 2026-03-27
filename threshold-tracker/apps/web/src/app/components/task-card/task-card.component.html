@@ -1,4 +1,4 @@
-<a [routerLink]="['/task', task.id]">
+<a [routerLink]="['/task', task.aimlabs_task_id]">
   <div class="group relative bg-gradient-to-br border rounded-2xl p-5 hover:scale-[1.02] transition-all duration-300 cursor-pointer"
     [ngClass]="colorClass">
     <div class="flex items-start justify-between mb-4">
@@ -13,25 +13,35 @@
       <span class="text-xs font-medium text-white/40 uppercase tracking-wider">{{ task.category }}</span>
     </div>
 
-    <h3 class="text-white font-semibold text-lg mb-3 truncate">{{ task.name }}</h3>
+    <h3 class="text-white font-semibold text-lg mb-3 truncate">{{ task.task_name }}</h3>
 
-    <div class="grid grid-cols-2 gap-3">
+    <div class="grid grid-cols-4 gap-2">
       <div>
         <p class="text-white/40 text-xs mb-0.5">Threshold</p>
-        <p class="text-lg font-bold" [ngClass]="task.threshold ? textColor : 'text-white/20'">
-          {{ task.threshold ? task.threshold.toLocaleString() : '—' }}
+        <p class="text-base font-bold" [ngClass]="task.threshold_value ? textColor : 'text-white/20'">
+          {{ task.threshold_value ? task.threshold_value.toLocaleString() : '—' }}
         </p>
       </div>
       <div>
         <p class="text-white/40 text-xs mb-0.5">PB</p>
-        <p class="text-lg font-bold text-white/80">
+        <p class="text-base font-bold text-white/80">
           {{ task.personal_best ? task.personal_best.toLocaleString() : '—' }}
         </p>
       </div>
-    </div>
-
-    <div class="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
-      <span class="text-white/30 text-xs">{{ scoreCount }} attempts</span>
+      <div>
+        <p class="text-white/40 text-xs mb-0.5">Plays</p>
+        <p class="text-base font-bold text-white/50">{{ task.play_count.toLocaleString() }}</p>
+      </div>
+      <div>
+        <p class="text-white/40 text-xs mb-0.5">Trend</p>
+        @if (trend === 'up') {
+          <p class="text-emerald-400 text-base font-bold">↑</p>
+        } @else if (trend === 'down') {
+          <p class="text-rose-400 text-base font-bold">↓</p>
+        } @else {
+          <p class="text-white/20 text-base font-bold">—</p>
+        }
+      </div>
     </div>
   </div>
 </a>

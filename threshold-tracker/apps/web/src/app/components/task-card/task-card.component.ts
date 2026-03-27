@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgClass } from '@angular/common';
-import { Task } from '../../models/task.model';
+import { UserTaskStat } from '../../models/task.model';
 
 @Component({
   selector: 'app-task-card',
@@ -10,8 +10,7 @@ import { Task } from '../../models/task.model';
   templateUrl: './task-card.component.html',
 })
 export class TaskCardComponent {
-  @Input() task!: Task;
-  @Input() scoreCount = 0;
+  @Input() task!: UserTaskStat;
 
   get colorClass(): string {
     const map: Record<string, string> = {
@@ -30,5 +29,13 @@ export class TaskCardComponent {
       switching: 'text-amber-400', clicking: 'text-rose-400', other: 'text-slate-400',
     };
     return map[this.task.category] || 'text-slate-400';
+  }
+
+  get trend(): 'up' | 'down' | 'stable' | 'none' {
+    if (this.task.last5_avg == null || this.task.avg_score == null) return 'none';
+    const delta = this.task.last5_avg - this.task.avg_score;
+    if (delta > 50) return 'up';
+    if (delta < -50) return 'down';
+    return 'stable';
   }
 }
