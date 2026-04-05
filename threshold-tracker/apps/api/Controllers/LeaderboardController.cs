@@ -11,6 +11,8 @@ public class LeaderboardController(IUserTaskStatService taskStatService) : Contr
     [HttpGet]
     public async Task<IReadOnlyList<LeaderboardEntryResponse>> Get(
         [FromQuery(Name = "task_id")] string taskId,
-        CancellationToken ct) =>
-        await taskStatService.GetLeaderboardAsync(taskId, ct);
+        CancellationToken ct,
+        [FromQuery] DateTime? from = null,
+        [FromQuery] DateTime? to = null) =>
+        await taskStatService.GetLeaderboardAsync(taskId, from, to, ct);
 }

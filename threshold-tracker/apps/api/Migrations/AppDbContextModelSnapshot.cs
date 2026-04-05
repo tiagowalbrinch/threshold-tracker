@@ -263,6 +263,16 @@ namespace ThresholdTracker.Migrations
                         .HasColumnType("text")
                         .HasColumnName("aimlabs_task_id");
 
+                    b.Property<bool>("AutosyncEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("autosync_enabled");
+
+                    b.Property<DateTime?>("LastCalculatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_calculated_at");
+
                     b.Property<int>("ThresholdValue")
                         .HasColumnType("integer")
                         .HasColumnName("threshold_value");

@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { LeaderboardEntry, UserTaskStat } from '../../models/task.model';
 import { SyncService } from '../../services/sync.service';
 import { TaskService } from '../../services/task.service';
+import { AuthService } from '../../services/auth.service';
 import { format } from 'date-fns';
 
 @Component({
@@ -14,6 +15,7 @@ import { format } from 'date-fns';
 export class LeaderboardComponent {
   private syncService = inject(SyncService);
   private taskService = inject(TaskService);
+  authService = inject(AuthService);
 
   search = signal('');
   taskSuggestions = signal<UserTaskStat[]>([]);

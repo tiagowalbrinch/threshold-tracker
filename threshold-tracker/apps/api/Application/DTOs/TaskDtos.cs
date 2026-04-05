@@ -10,9 +10,11 @@ public record UserTaskStatResponse(
     DateTime? LastPlayedAt,
     int? ThresholdValue,
     DateTime SyncedAt,
-    double? Last5Avg = null);
+    double? Last5Avg = null,
+    bool AutosyncEnabled = false,
+    DateTime? LastCalculatedAt = null);
 
-public record ThresholdUpdateRequest(int Value);
+public record ThresholdUpdateRequest(int Value, bool AutosyncEnabled = false);
 
 public record TaskCatalogItemResponse(
     string AimlabsTaskId,
@@ -29,4 +31,6 @@ public record LeaderboardEntryResponse(
     string DisplayName,
     int PersonalBest,
     int PlayCount,
-    DateTime SyncedAt);
+    DateTime SyncedAt,
+    int? LastThreshold = null,
+    int? TrendDelta = null);

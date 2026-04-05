@@ -42,7 +42,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
     {
         var origins = builder.Configuration["AllowedOrigins"]?.Split(',')
-            ?? ["http://localhost:4200"];
+            ?? ["http://localhost:4200", "http://localhost:4201"];
         policy.WithOrigins(origins)
             .AllowAnyHeader()
             .AllowAnyMethod();

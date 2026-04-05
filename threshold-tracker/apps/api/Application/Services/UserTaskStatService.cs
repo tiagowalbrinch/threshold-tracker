@@ -112,6 +112,36 @@ public class UserTaskStatService(AppDbContext db, UserManager<ApplicationUser> u
         return new PagedResponse<TaskCatalogItemResponse>(items, total, page, pageSize);
     }
 
+    public async Task<TaskCatalogItemResponse?> GetCatalogItemAsync(string aimlabsTaskId, CancellationToken ct = default)
+    {
+        return await db.AimTasks
+            .Where(t => t.AimlabsTaskId == aimlabsTaskId)
+            .Select(t => new TaskCatalogItemResponse(
+                t.AimlabsTaskId,
+                t.TaskName,
+                t.Category,
+                db.UserTaskStats
+                    .Where(s => s.AimlabsTaskId == t.AimlabsTaskId && s.PersonalBest != null)
+                    .OrderByDescending(s => s.PersonalBest)
+                    .Select(s => s.AimlabsUsername)
+                    .FirstOrDefault(),
+                db.UserTaskStats
+                    .Where(s => s.AimlabsTaskId == t.AimlabsTaskId && s.AvgScore != null)
+                    .Average(s => (double?)s.AvgScore),
+                db.UserTaskStats
+                    .Where(s => s.AimlabsTaskId == t.AimlabsTaskId)
+                    .Max(s => (int?)s.PersonalBest),
+                db.UserTaskStats.Count(s => s.AimlabsTaskId == t.AimlabsTaskId),
+                (int)(db.UserTaskStats
+                    .Where(s => s.AimlabsTaskId == t.AimlabsTaskId)
+                    .Sum(s => (long?)s.PlayCount) ?? 0),
+                db.UserTaskStats
+                    .Where(s => s.AimlabsTaskId == t.AimlabsTaskId)
+                    .Max(s => (DateTime?)s.LastPlayedAt)
+            ))
+            .FirstOrDefaultAsync(ct);
+    }
+
     public async Task<UserTaskStatResponse> GetTaskAsync(string userId, string aimlabTaskId, CancellationToken ct = default)
     {
         var aimlabsUsername = await GetAimlabsUsernameAsync(userId, ct);
@@ -121,15 +151,16 @@ public class UserTaskStatService(AppDbContext db, UserManager<ApplicationUser> u
             ?? throw new KeyNotFoundException($"Task '{aimlabTaskId}' not found for this user.");
 
         var threshold = await db.UserThresholds
-            .Where(t => t.UserId == userId && t.AimlabsTaskId == aimlabTaskId)
-            .Select(t => (int?)t.ThresholdValue)
-            .FirstOrDefaultAsync(ct);
+            .FirstOrDefaultAsync(t => t.UserId == userId && t.AimlabsTaskId == aimlabTaskId, ct);
 
-        return ToResponse(stat, thresholdValue: threshold);
+        return ToResponse(stat, thresholdValue: threshold?.ThresholdValue,
+            autosyncEnabled: threshold?.AutosyncEnabled ?? false,
+            lastCalculatedAt: threshold?.LastCalculatedAt);
     }
 
-    public async Task<UserTaskStatResponse> SetThresholdAsync(string userId, string aimlabTaskId, int value, CancellationToken ct = default)
+    public async Task<UserTaskStatResponse> SetThresholdAsync(string userId, string aimlabTaskId, int value, bool autosyncEnabled = false, CancellationToken ct = default)
     {
+        var now = DateTime.UtcNow;
         var existing = await db.UserThresholds
             .FirstOrDefaultAsync(t => t.UserId == userId && t.AimlabsTaskId == aimlabTaskId, ct);
 
@@ -139,7 +170,9 @@ public class UserTaskStatService(AppDbContext db, UserManager<ApplicationUser> u
             {
                 UserId = userId,
                 AimlabsTaskId = aimlabTaskId,
-                ThresholdValue = value
+                ThresholdValue = value,
+                AutosyncEnabled = autosyncEnabled,
+                LastCalculatedAt = now
             });
             await db.SaveChangesAsync(ct);
         }
@@ -147,7 +180,10 @@ public class UserTaskStatService(AppDbContext db, UserManager<ApplicationUser> u
         {
             await db.UserThresholds
                 .Where(t => t.UserId == userId && t.AimlabsTaskId == aimlabTaskId)
-                .ExecuteUpdateAsync(t => t.SetProperty(x => x.ThresholdValue, value), ct);
+                .ExecuteUpdateAsync(t => t
+                    .SetProperty(x => x.ThresholdValue, value)
+                    .SetProperty(x => x.AutosyncEnabled, autosyncEnabled)
+                    .SetProperty(x => x.LastCalculatedAt, now), ct);
         }
 
         // Try to load the stat to build a full response
@@ -160,17 +196,101 @@ public class UserTaskStatService(AppDbContext db, UserManager<ApplicationUser> u
         }
 
         return stat is not null
-            ? ToResponse(stat, thresholdValue: value)
-            : new UserTaskStatResponse(aimlabTaskId, aimlabTaskId, "other", null, 0, null, null, value, DateTime.UtcNow, null);
+            ? ToResponse(stat, thresholdValue: value, autosyncEnabled: autosyncEnabled, lastCalculatedAt: now)
+            : new UserTaskStatResponse(aimlabTaskId, aimlabTaskId, "other", null, 0, null, null, value, DateTime.UtcNow, null, autosyncEnabled, now);
     }
 
-    public async Task<IReadOnlyList<LeaderboardEntryResponse>> GetLeaderboardAsync(string aimlabTaskId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<LeaderboardEntryResponse>> GetLeaderboardAsync(
+        string aimlabTaskId, DateTime? from = null, DateTime? to = null, CancellationToken ct = default)
     {
-        return await db.UserTaskStats
-            .Where(s => s.AimlabsTaskId == aimlabTaskId && s.PersonalBest != null)
-            .OrderByDescending(s => s.PersonalBest)
-            .Select(s => new LeaderboardEntryResponse(s.AimlabsUsername, s.PersonalBest!.Value, s.PlayCount, s.SyncedAt))
+        // When a date range is provided, rank by best score in that range; otherwise use all-time PB
+        List<(string Username, int RankScore, int PlayCount, DateTime SyncedAt)> ranked;
+
+        if (from.HasValue || to.HasValue)
+        {
+            var playsQuery = db.PlayAttempts.Where(p => p.AimlabsTaskId == aimlabTaskId);
+            if (from.HasValue) playsQuery = playsQuery.Where(p => p.PlayedAt >= DateTime.SpecifyKind(from.Value, DateTimeKind.Utc));
+            if (to.HasValue)   playsQuery = playsQuery.Where(p => p.PlayedAt <= DateTime.SpecifyKind(to.Value, DateTimeKind.Utc));
+
+            ranked = await playsQuery
+                .GroupBy(p => p.AimlabsUsername)
+                .Select(g => new
+                {
+                    Username = g.Key,
+                    RankScore = g.Max(p => p.Score),
+                    PlayCount = g.Count()
+                })
+                .Join(db.UserTaskStats,
+                    g => new { g.Username, AimlabsTaskId = aimlabTaskId },
+                    s => new { Username = s.AimlabsUsername, s.AimlabsTaskId },
+                    (g, s) => new { g.Username, g.RankScore, g.PlayCount, s.SyncedAt })
+                .OrderByDescending(x => x.RankScore)
+                .Select(x => new { x.Username, x.RankScore, x.PlayCount, x.SyncedAt })
+                .ToListAsync(ct)
+                .ContinueWith(t => t.Result.Select(x => (x.Username, x.RankScore, x.PlayCount, x.SyncedAt)).ToList(), ct);
+        }
+        else
+        {
+            ranked = await db.UserTaskStats
+                .Where(s => s.AimlabsTaskId == aimlabTaskId && s.PersonalBest != null)
+                .OrderByDescending(s => s.PersonalBest)
+                .Select(s => new { s.AimlabsUsername, RankScore = s.PersonalBest!.Value, s.PlayCount, s.SyncedAt })
+                .ToListAsync(ct)
+                .ContinueWith(t => t.Result.Select(x => (x.AimlabsUsername, x.RankScore, x.PlayCount, x.SyncedAt)).ToList(), ct);
+        }
+
+        if (ranked.Count == 0) return [];
+
+        var usernames = ranked.Select(r => r.Username).ToList();
+
+        // Fetch last 10 plays per user for trend_delta (always all-time, not date-filtered)
+        var allPlays = await db.PlayAttempts
+            .Where(p => p.AimlabsTaskId == aimlabTaskId && usernames.Contains(p.AimlabsUsername))
+            .OrderByDescending(p => p.PlayedAt)
+            .Select(p => new { p.AimlabsUsername, p.Score })
             .ToListAsync(ct);
+
+        var playsByUser = allPlays
+            .GroupBy(p => p.AimlabsUsername)
+            .ToDictionary(g => g.Key, g => g.Select(p => p.Score).ToList());
+
+        // Fetch thresholds via user join
+        var users = await db.Users
+            .Where(u => u.AimlabsUsername != null && usernames.Contains(u.AimlabsUsername))
+            .Select(u => new { u.Id, u.AimlabsUsername })
+            .ToListAsync(ct);
+
+        var userIdByUsername = users
+            .Where(u => u.AimlabsUsername != null)
+            .GroupBy(u => u.AimlabsUsername!)
+            .ToDictionary(g => g.Key, g => g.First().Id);
+
+        var userIds = users.Select(u => u.Id).ToList();
+        var thresholds = await db.UserThresholds
+            .Where(t => t.AimlabsTaskId == aimlabTaskId && userIds.Contains(t.UserId))
+            .ToDictionaryAsync(t => t.UserId, t => t.ThresholdValue, ct);
+
+        return ranked.Select(r =>
+        {
+            var plays = playsByUser.GetValueOrDefault(r.Username, []);
+            var recent5 = plays.Take(5).ToList();
+            var prior5 = plays.Skip(5).Take(5).ToList();
+
+            int? trendDelta = null;
+            if (recent5.Count >= 2 && prior5.Count >= 1)
+            {
+                var avgRecent = recent5.Average(s => (double)s);
+                var avgPrior  = prior5.Average(s => (double)s);
+                trendDelta = (int)Math.Round(avgRecent - avgPrior);
+            }
+
+            int? lastThreshold = null;
+            if (userIdByUsername.TryGetValue(r.Username, out var uid) &&
+                thresholds.TryGetValue(uid, out var tv))
+                lastThreshold = tv;
+
+            return new LeaderboardEntryResponse(r.Username, r.RankScore, r.PlayCount, r.SyncedAt, lastThreshold, trendDelta);
+        }).ToList();
     }
 
     public async Task<IReadOnlyList<PlayAttemptResponse>> GetPlaysAsync(
@@ -226,7 +346,8 @@ public class UserTaskStatService(AppDbContext db, UserManager<ApplicationUser> u
         return user.AimlabsUsername;
     }
 
-    private static UserTaskStatResponse ToResponse(UserTaskStat s, double? last5Avg = null, int? thresholdValue = null) =>
+    private static UserTaskStatResponse ToResponse(UserTaskStat s, double? last5Avg = null, int? thresholdValue = null,
+        bool autosyncEnabled = false, DateTime? lastCalculatedAt = null) =>
         new(s.AimlabsTaskId, s.TaskName, s.Category, s.PersonalBest, s.PlayCount, s.AvgScore,
-            s.LastPlayedAt, thresholdValue, s.SyncedAt, last5Avg);
+            s.LastPlayedAt, thresholdValue, s.SyncedAt, last5Avg, autosyncEnabled, lastCalculatedAt);
 }

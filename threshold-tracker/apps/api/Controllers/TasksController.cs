@@ -29,7 +29,7 @@ public class TasksController(IUserTaskStatService taskStatService) : ControllerB
     [HttpPatch("{taskId}/threshold")]
     public async Task<UserTaskStatResponse> SetThreshold(
         string taskId, [FromBody] ThresholdUpdateRequest request, CancellationToken ct) =>
-        await taskStatService.SetThresholdAsync(UserId, taskId, request.Value, ct);
+        await taskStatService.SetThresholdAsync(UserId, taskId, request.Value, request.AutosyncEnabled, ct);
 
     private string UserId => User.FindFirstValue(JwtRegisteredClaimNames.Sub)!;
 }

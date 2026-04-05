@@ -49,9 +49,19 @@
 
   @if (!loading() && entries().length > 0) {
     <div class="bg-white/[0.03] border border-white/10 rounded-2xl overflow-hidden">
-      <div class="px-5 py-4 border-b border-white/5">
-        <h2 class="text-white font-semibold">{{ selectedTask()!.task_name }}</h2>
-        <p class="text-white/30 text-xs capitalize">{{ selectedTask()!.category }}</p>
+      <div class="px-5 py-4 border-b border-white/5 flex items-center justify-between">
+        <div>
+          <h2 class="text-white font-semibold">{{ selectedTask()!.task_name }}</h2>
+          <p class="text-white/30 text-xs capitalize">{{ selectedTask()!.category }}</p>
+        </div>
+        @defer (on idle) {
+          @if (authService.isLoggedIn()) {
+            <a [routerLink]="['/task', selectedTask()!.aimlabs_task_id]"
+              class="text-xs text-violet-400 hover:text-violet-300 transition-colors">
+              My stats →
+            </a>
+          }
+        }
       </div>
       <table class="w-full text-sm">
         <thead>

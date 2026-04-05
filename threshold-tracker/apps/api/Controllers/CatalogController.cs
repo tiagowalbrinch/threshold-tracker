@@ -8,6 +8,13 @@ namespace ThresholdTracker.Api.Controllers;
 [Route("catalog")]
 public class CatalogController(IUserTaskStatService taskStatService) : ControllerBase
 {
+    [HttpGet("{taskId}")]
+    public async Task<IActionResult> GetCatalogItem(string taskId, CancellationToken ct)
+    {
+        var item = await taskStatService.GetCatalogItemAsync(taskId, ct);
+        return item is null ? NotFound() : Ok(item);
+    }
+
     [HttpGet]
     public async Task<PagedResponse<TaskCatalogItemResponse>> GetCatalog(
         [FromQuery] string? name,

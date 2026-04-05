@@ -30,23 +30,11 @@
           <span class="text-white/30 text-sm capitalize">{{ task()!.category }}</span>
         </div>
       </div>
-      <div class="flex items-center gap-2 pl-11 sm:pl-0">
-        @if (authService.isLoggedIn()) {
-          <!-- Sync plays button -->
-          <button (click)="onSyncPlays()" [disabled]="syncingPlays()"
-            class="p-2 text-white/40 hover:text-white hover:bg-white/5 disabled:opacity-40 rounded-lg transition-colors" title="Sync plays from Aimlabs">
-            @if (syncingPlays()) {
-              <div class="w-5 h-5 border-2 border-white/20 border-t-violet-500 rounded-full animate-spin"></div>
-            } @else {
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-              </svg>
-            }
-          </button>
+      @if (authService.isLoggedIn()) {
+        <div class="flex items-center gap-2 pl-11 sm:pl-0">
           <!-- Recalculate button -->
           <button (click)="onRecalculate()" [disabled]="recalculating()"
-            class="p-2 text-white/40 hover:text-white hover:bg-white/5 disabled:opacity-40 rounded-lg transition-colors" title="Recalculate stats for current Aimlabs username">
+            class="p-2 text-white/40 hover:text-white hover:bg-white/5 disabled:opacity-40 rounded-lg transition-colors" title="Recalculate stats">
             @if (recalculating()) {
               <div class="w-5 h-5 border-2 border-white/20 border-t-cyan-400 rounded-full animate-spin"></div>
             } @else {
@@ -56,55 +44,49 @@
               </svg>
             }
           </button>
-          <!-- Threshold settings button -->
-          <button (click)="showSettings.set(!showSettings())"
-            class="p-2 text-white/40 hover:text-white hover:bg-white/5 rounded-lg transition-colors" title="Threshold settings">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-            </svg>
-          </button>
-        }
-      </div>
+        </div>
+      }
     </div>
 
-    <!-- Threshold Settings -->
-    @if (showSettings()) {
-      <div class="bg-white/[0.03] rounded-2xl p-5 border border-white/5 mb-6">
-        <app-threshold-settings
-          [task]="task()!"
-          [scores]="scores()"
-          (save)="onUpdateThreshold($event)">
-        </app-threshold-settings>
+    <!-- Threshold section (always visible) -->
+    <div class="bg-white/[0.03] rounded-2xl p-5 border border-white/5 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-white/60 text-sm font-medium uppercase tracking-wider">Threshold</h2>
+        @if (task()!.threshold_value) {
+          <span class="text-2xl font-bold text-violet-400">{{ task()!.threshold_value!.toLocaleString() }}</span>
+        }
       </div>
-    }
 
-    <!-- Threshold Indicator hero -->
-    <div class="mb-6">
+      <!-- Threshold indicator -->
       <app-threshold-indicator
         [threshold]="task()!.threshold_value || 0"
         [personalBest]="task()!.personal_best || 0"
         [latestScore]="latestScore()"
         [scores]="scores()">
       </app-threshold-indicator>
+
+      @if (authService.isLoggedIn()) {
+        <!-- Settings: always visible below indicator -->
+        <div class="mt-5 pt-5 border-t border-white/5">
+          <app-threshold-settings
+            [task]="task()!"
+            [scores]="scores()"
+            (save)="onUpdateThreshold($event)">
+          </app-threshold-settings>
+        </div>
+      }
     </div>
 
     <!-- Chart -->
     <div class="bg-white/[0.03] rounded-2xl p-5 border border-white/5 mb-6">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <h2 class="text-white/60 text-sm font-medium uppercase tracking-wider">Score History</h2>
-        <div class="flex items-center gap-2 flex-wrap">
-          <input type="date" [value]="dateFrom()" (input)="dateFrom.set($any($event.target).value)"
-            class="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-white/60 text-xs outline-none focus:border-white/20" />
-          <span class="text-white/20 text-xs">to</span>
-          <input type="date" [value]="dateTo()" (input)="dateTo.set($any($event.target).value)"
-            class="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-white/60 text-xs outline-none focus:border-white/20" />
-          <button (click)="onFilterScores()" [disabled]="loadingScores()"
-            class="px-3 py-1 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-xs rounded-lg">
-            Apply
-          </button>
-        </div>
+        <app-date-range-select
+          [value]="dateRange()"
+          (rangeChange)="dateRange.set($event)">
+        </app-date-range-select>
       </div>
-      <app-score-chart [scores]="scores()" [threshold]="task()!.threshold_value || 0"></app-score-chart>
+      <app-score-chart [scores]="chartScores()" [threshold]="task()!.threshold_value || 0"></app-score-chart>
     </div>
 
     <!-- Stats -->
@@ -126,9 +108,8 @@
         </button>
       </div>
       <app-score-history-table
-        [taskId]="taskId"
-        [threshold]="task()!.threshold_value || 0"
-        [refreshTrigger]="refreshTrigger()">
+        [scores]="scores()"
+        [threshold]="task()!.threshold_value || 0">
       </app-score-history-table>
     </div>
   </div>
@@ -141,7 +122,6 @@
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
     <div class="relative bg-[#0f0f17] border border-white/10 rounded-2xl w-full max-w-lg max-h-[80vh] flex flex-col"
       (click)="$event.stopPropagation()">
-      <!-- Modal header -->
       <div class="flex items-center justify-between px-5 py-4 border-b border-white/5">
         <div>
           <h3 class="text-white font-semibold">Leaderboard</h3>
@@ -154,7 +134,6 @@
           </svg>
         </button>
       </div>
-      <!-- Modal body -->
       <div class="overflow-y-auto flex-1">
         @if (loadingLeaderboard()) {
           <div class="py-12 flex justify-center">

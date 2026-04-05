@@ -24,11 +24,15 @@ export class HttpTaskService extends TaskService {
     return this.http.get<UserTaskStat>(`${environment.apiUrl}/tasks/${encodeURIComponent(id)}`);
   }
 
-  setThreshold(taskId: string, value: number): Observable<UserTaskStat> {
+  setThreshold(taskId: string, value: number, autosyncEnabled = false): Observable<UserTaskStat> {
     return this.http.patch<UserTaskStat>(
       `${environment.apiUrl}/tasks/${encodeURIComponent(taskId)}/threshold`,
-      { value }
+      { value, autosync_enabled: autosyncEnabled }
     );
+  }
+
+  getCatalogItem(taskId: string): Observable<TaskCatalogItem> {
+    return this.http.get<TaskCatalogItem>(`${environment.apiUrl}/catalog/${encodeURIComponent(taskId)}`);
   }
 
   getCatalog(params?: CatalogParams): Observable<PagedResponse<TaskCatalogItem>> {

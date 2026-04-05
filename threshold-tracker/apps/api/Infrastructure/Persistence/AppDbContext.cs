@@ -67,6 +67,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.AimlabsTaskId).HasColumnName("aimlabs_task_id");
             entity.Property(e => e.ThresholdValue).HasColumnName("threshold_value");
+            entity.Property(e => e.AutosyncEnabled).HasColumnName("autosync_enabled").HasDefaultValue(false);
+            entity.Property(e => e.LastCalculatedAt).HasColumnName("last_calculated_at");
             entity.HasOne<ApplicationUser>()
                 .WithMany()
                 .HasForeignKey(e => e.UserId)

@@ -7,6 +7,7 @@ import { PagedResponse } from '../models/score.model';
 export abstract class TaskService {
   abstract getAll(params?: MyTasksParams): Observable<UserTaskStat[]>;
   abstract getById(id: string): Observable<UserTaskStat>;
-  abstract setThreshold(taskId: string, value: number): Observable<UserTaskStat>;
+  abstract setThreshold(taskId: string, value: number, autosyncEnabled?: boolean): Observable<UserTaskStat>;
   abstract getCatalog(params?: CatalogParams): Observable<PagedResponse<TaskCatalogItem>>;
+  abstract getCatalogItem(taskId: string): Observable<TaskCatalogItem>;
 }

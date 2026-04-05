@@ -15,7 +15,7 @@ export class SyncPollingService {
 
   start(): void {
     if (!isPlatformBrowser(this.platformId) || this.subscription) return;
-    this.subscription = interval(60_000).pipe(
+    this.subscription = interval(600_000).pipe(
       filter(() => this.authService.isLoggedIn() && this.authService.hasAimlabsUsername()),
       switchMap(() => this.syncService.sync().pipe(catchError(() => EMPTY)))
     ).subscribe();

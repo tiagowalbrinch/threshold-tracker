@@ -10,15 +10,18 @@ namespace ThresholdTracker.Api.Controllers;
 [ApiController]
 [Route("scores")]
 [Authorize]
-public class ScoresController(IUserTaskStatService taskStatService) : ControllerBase
+public class ScoresController(IUserTaskStatService taskStatService, ISyncService syncService) : ControllerBase
 {
     [HttpGet]
     public async Task<IReadOnlyList<PlayAttemptResponse>> Get(
         [FromQuery(Name = "task_id")] string taskId,
         [FromQuery] DateTime? from,
         [FromQuery] DateTime? to,
-        CancellationToken ct) =>
-        await taskStatService.GetPlaysAsync(UserId, taskId, from, to, ct);
+        CancellationToken ct)
+    {
+        await syncService.SyncPlaysAsync(UserId, taskId, ct);
+        return await taskStatService.GetPlaysAsync(UserId, taskId, from, to, ct);
+    }
 
     [HttpGet("paged")]
     public async Task<PagedResponse<PlayAttemptResponse>> GetPaged(

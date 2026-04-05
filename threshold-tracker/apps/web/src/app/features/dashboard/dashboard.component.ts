@@ -7,13 +7,14 @@ import { SyncService } from '../../services/sync.service';
 import { TaskCardComponent } from '../../components/task-card/task-card.component';
 import { TaskCatalogCardComponent } from '../../components/task-catalog-card/task-catalog-card.component';
 import { AuthService } from '../../services/auth.service';
+import { DateRangeSelectComponent, dateRangeToParams } from '../../components/date-range-select/date-range-select.component';
 
 const PAGE_SIZE = 24;
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [NgClass, TaskCardComponent, TaskCatalogCardComponent],
+  imports: [NgClass, TaskCardComponent, TaskCatalogCardComponent, DateRangeSelectComponent],
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {
@@ -45,16 +46,6 @@ export class DashboardComponent implements OnInit {
   orderBy = signal('recently_played');
   dateRange = signal('all');
 
-  readonly dateRangeOptions = [
-    { value: 'all',           label: 'All time' },
-    { value: 'last_7_days',   label: 'Last 7 days' },
-    { value: 'last_30_days',  label: 'Last 30 days' },
-    { value: 'last_3_months', label: 'Last 3 months' },
-    { value: 'last_6_months', label: 'Last 6 months' },
-    { value: 'last_year',     label: 'Last year' },
-    { value: 'yesterday',     label: 'Yesterday' },
-    { value: '2_days_ago',    label: '2 days ago' },
-  ];
 
   // Catalog order
   catalogOrderBy = signal('recently_played');
@@ -111,30 +102,9 @@ export class DashboardComponent implements OnInit {
     return cat === 'all' ? 'All' : cat.charAt(0).toUpperCase() + cat.slice(1);
   }
 
-  private dateRangeToParams(): { from?: string; to?: string } {
-    const now = new Date();
-    const fmt = (d: Date) => d.toISOString().split('T')[0];
-
-    const startOfDay = (d: Date) => { d.setHours(0, 0, 0, 0); return d; };
-    const endOfDay   = (d: Date) => { d.setHours(23, 59, 59, 999); return d; };
-    const daysAgo    = (n: number) => { const d = new Date(now); d.setDate(d.getDate() - n); return d; };
-    const monthsAgo  = (n: number) => { const d = new Date(now); d.setMonth(d.getMonth() - n); return d; };
-
-    switch (this.dateRange()) {
-      case 'last_7_days':   return { from: fmt(startOfDay(daysAgo(7))) };
-      case 'last_30_days':  return { from: fmt(startOfDay(daysAgo(30))) };
-      case 'last_3_months': return { from: fmt(startOfDay(monthsAgo(3))) };
-      case 'last_6_months': return { from: fmt(startOfDay(monthsAgo(6))) };
-      case 'last_year':     return { from: fmt(startOfDay(monthsAgo(12))) };
-      case 'yesterday':     return { from: fmt(startOfDay(daysAgo(1))), to: fmt(endOfDay(daysAgo(1))) };
-      case '2_days_ago':    return { from: fmt(startOfDay(daysAgo(2))), to: fmt(endOfDay(daysAgo(2))) };
-      default:              return {};
-    }
-  }
-
   private loadMyTasks() {
     this.loadingTasks.set(true);
-    const { from, to } = this.dateRangeToParams();
+    const { from, to } = dateRangeToParams(this.dateRange());
     this.taskService.getAll({
       name: this.search() || undefined,
       category: this.filterCategory() !== 'all' ? this.filterCategory() : undefined,

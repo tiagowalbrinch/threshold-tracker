@@ -11,12 +11,36 @@
       </button>
     </div>
   </div>
+
+  <!-- Autosync toggle -->
+  <label class="flex items-center gap-3 cursor-pointer group">
+    <div class="relative">
+      <input type="checkbox" class="sr-only" [checked]="autosyncEnabled()"
+        (change)="autosyncEnabled.set($any($event.target).checked)" />
+      <div class="w-9 h-5 rounded-full transition-colors"
+        [class.bg-violet-600]="autosyncEnabled()"
+        [class.bg-white/10]="!autosyncEnabled()">
+      </div>
+      <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow"
+        [class.translate-x-4]="autosyncEnabled()">
+      </div>
+    </div>
+    <span class="text-white/60 text-sm group-hover:text-white/80 transition-colors">
+      Recalcular automaticamente (1x por dia)
+    </span>
+  </label>
+
   @if (suggested()) {
-    <button (click)="value.set(suggested()!.toString())"
-      class="flex items-center gap-2 text-sm text-amber-400/80 hover:text-amber-400 transition-colors">
-      💡 Threshold sugerido: <strong>{{ suggested()!.toLocaleString() }}</strong>
-      <span class="text-white/30 ml-1">(baseado em {{ scores.length }} tentativas)</span>
-    </button>
+    <div class="space-y-1.5">
+      <button (click)="value.set(suggested()!.toString())"
+        class="flex items-center gap-2 text-sm text-amber-400/80 hover:text-amber-400 transition-colors">
+        💡 Threshold sugerido: <strong>{{ suggested()!.toLocaleString() }}</strong>
+        <span class="text-white/30 ml-1">(últimas {{ suggestedWindowSize }} tentativas)</span>
+      </button>
+      <p class="text-white/25 text-xs pl-0.5">
+        Melhor pontuação consistente excluindo picos de sorte — o que você consegue repetir com esforço focado.
+      </p>
+    </div>
   }
   @if (scores.length < 5 && scores.length > 0) {
     <p class="text-white/20 text-xs">

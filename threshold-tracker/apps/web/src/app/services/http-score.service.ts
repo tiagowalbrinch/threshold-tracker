@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { PlayAttempt, PagedResponse } from '../models/score.model';
+import { PlayAttempt } from '../models/score.model';
 import { ScoreService } from './score.service';
 import { environment } from '../../environments/environment';
 
@@ -16,11 +16,4 @@ export class HttpScoreService extends ScoreService {
     return this.http.get<PlayAttempt[]>(`${environment.apiUrl}/scores`, { params });
   }
 
-  getByTaskPaged(taskId: string, page: number, pageSize: number): Observable<PagedResponse<PlayAttempt>> {
-    const params = new HttpParams()
-      .set('task_id', taskId)
-      .set('page', page)
-      .set('page_size', pageSize);
-    return this.http.get<PagedResponse<PlayAttempt>>(`${environment.apiUrl}/scores/paged`, { params });
-  }
 }

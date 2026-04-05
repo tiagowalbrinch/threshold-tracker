@@ -1,6 +1,5 @@
-import { Component, Input, OnChanges, SimpleChanges, signal, computed, inject } from '@angular/core';
+import { Component, Input, signal, computed } from '@angular/core';
 import { PlayAttempt } from '../../models/score.model';
-import { ScoreService } from '../../services/score.service';
 import { format } from 'date-fns';
 
 @Component({
@@ -9,42 +8,29 @@ import { format } from 'date-fns';
   imports: [],
   templateUrl: './score-history-table.component.html',
 })
-export class ScoreHistoryTableComponent implements OnChanges {
-  private scoreService = inject(ScoreService);
-
-  @Input() taskId = '';
+export class ScoreHistoryTableComponent {
+  @Input() set scores(value: PlayAttempt[]) { this._scores.set(value); this.page.set(1); }
   @Input() threshold = 0;
-  @Input() refreshTrigger = 0;
+
+  private _scores = signal<PlayAttempt[]>([]);
 
   readonly pageSize = 25;
-
   page = signal(1);
-  totalCount = signal(0);
-  pagedScores = signal<PlayAttempt[]>([]);
-  loading = signal(false);
 
+  totalCount = computed(() => this._scores().length);
   totalPages = computed(() => Math.max(1, Math.ceil(this.totalCount() / this.pageSize)));
-
   firstItem = computed(() => (this.page() - 1) * this.pageSize + 1);
   lastItem = computed(() => Math.min(this.page() * this.pageSize, this.totalCount()));
 
-  ngOnChanges(changes: SimpleChanges) {
-    if ((changes['taskId'] || changes['refreshTrigger']) && this.taskId) {
-      this.loadPage(1);
-    }
-  }
+  // Scores are sorted oldest→newest; table shows newest first
+  pagedScores = computed(() => {
+    const all = [...this._scores()].reverse();
+    const start = (this.page() - 1) * this.pageSize;
+    return all.slice(start, start + this.pageSize);
+  });
 
   loadPage(p: number) {
-    this.page.set(p);
-    this.loading.set(true);
-    this.scoreService.getByTaskPaged(this.taskId, p, this.pageSize).subscribe({
-      next: r => {
-        this.pagedScores.set(r.items);
-        this.totalCount.set(r.total_count);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false)
-    });
+    this.page.set(Math.max(1, Math.min(p, this.totalPages())));
   }
 
   formatDate(d: string) { return format(new Date(d), 'dd/MM/yyyy HH:mm'); }

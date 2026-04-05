@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { UserTaskStat, LeaderboardEntry } from '../models/task.model';
 import { environment } from '../../environments/environment';
@@ -27,9 +27,10 @@ export class SyncService {
     );
   }
 
-  getLeaderboard(taskId: string): Observable<LeaderboardEntry[]> {
-    return this.http.get<LeaderboardEntry[]>(
-      `${environment.apiUrl}/leaderboard?task_id=${encodeURIComponent(taskId)}`
-    );
+  getLeaderboard(taskId: string, from?: string, to?: string): Observable<LeaderboardEntry[]> {
+    let params = new HttpParams().set('task_id', taskId);
+    if (from) params = params.set('from', from);
+    if (to) params = params.set('to', to);
+    return this.http.get<LeaderboardEntry[]>(`${environment.apiUrl}/leaderboard`, { params });
   }
 }

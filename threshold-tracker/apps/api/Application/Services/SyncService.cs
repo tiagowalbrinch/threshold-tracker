@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using ThresholdTracker.Application.DTOs;
 using ThresholdTracker.Domain.Entities;
 using ThresholdTracker.Domain.Identity;
@@ -20,18 +21,18 @@ public class SyncService(
         if (string.IsNullOrWhiteSpace(user.AimlabsUsername))
             throw new ArgumentException("No Aimlabs username linked. Update your profile first.");
 
-        // Resolve and cache aimlabs user ID if needed
-        if (string.IsNullOrWhiteSpace(user.AimlabsUserId))
+        // Always re-resolve to guard against stale cached IDs after username changes
+        var aimlabsId = await aimlabsClient.ResolveUserIdAsync(user.AimlabsUsername, ct)
+            ?? throw new KeyNotFoundException($"Aimlabs user '{user.AimlabsUsername}' not found.");
+        if (user.AimlabsUserId != aimlabsId)
         {
-            var aimlabsId = await aimlabsClient.ResolveUserIdAsync(user.AimlabsUsername, ct)
-                ?? throw new KeyNotFoundException($"Aimlabs user '{user.AimlabsUsername}' not found.");
             user.AimlabsUserId = aimlabsId;
             await userManager.UpdateAsync(user);
         }
 
         var aimlabsUsername = user.AimlabsUsername;
 
-        var rawStats = await aimlabsClient.GetTaskStatsAsync(user.AimlabsUserId, ct);
+        var rawStats = await aimlabsClient.GetTaskStatsAsync(aimlabsId, ct);
 
         // Aimlabs groups by (task_id, task_mode) so the same task_id can appear multiple times.
         // Deduplicate by task_id, keeping the entry with the highest play count.
@@ -135,17 +136,17 @@ public class SyncService(
 
         if (plays.Count == 0) return 0;
 
-        // Load existing timestamps in the fetch window to deduplicate without relying on exceptions
+        // Load ALL existing timestamps to correctly deduplicate across full history
         var existingTimestamps = (await db.PlayAttempts
-            .Where(p => p.AimlabsUsername == aimlabsUsername
-                     && p.AimlabsTaskId == aimlabsTaskId
-                     && (from == null || p.PlayedAt >= from))
+            .Where(p => p.AimlabsUsername == aimlabsUsername && p.AimlabsTaskId == aimlabsTaskId)
             .Select(p => p.PlayedAt)
             .ToListAsync(ct))
             .ToHashSet();
 
         var toAdd = plays
             .Where(p => !existingTimestamps.Contains(p.PlayedAt))
+            .GroupBy(p => p.PlayedAt)          // deduplicate same-timestamp plays from API
+            .Select(g => g.OrderByDescending(p => p.Score).First())
             .Select(p => new Domain.Entities.PlayAttempt
             {
                 AimlabsUsername = aimlabsUsername,
@@ -158,7 +159,17 @@ public class SyncService(
         if (toAdd.Count > 0)
         {
             db.PlayAttempts.AddRange(toAdd);
-            await db.SaveChangesAsync(ct);
+            try
+            {
+                await db.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException ex)
+                when (ex.InnerException is PostgresException pg && pg.SqlState == "23505")
+            {
+                // Concurrent sync beat us to it — data is already saved, not an error
+                db.ChangeTracker.Clear();
+                return 0;
+            }
         }
 
         return toAdd.Count;
@@ -172,18 +183,18 @@ public class SyncService(
         if (string.IsNullOrWhiteSpace(user.AimlabsUsername))
             throw new ArgumentException("No Aimlabs username linked. Update your profile first.");
 
-        // Resolve and cache aimlabs user ID if needed
-        if (string.IsNullOrWhiteSpace(user.AimlabsUserId))
+        // Always re-resolve to guard against stale cached IDs after username changes
+        var aimlabsId = await aimlabsClient.ResolveUserIdAsync(user.AimlabsUsername, ct)
+            ?? throw new KeyNotFoundException($"Aimlabs user '{user.AimlabsUsername}' not found.");
+        if (user.AimlabsUserId != aimlabsId)
         {
-            var aimlabsId = await aimlabsClient.ResolveUserIdAsync(user.AimlabsUsername, ct)
-                ?? throw new KeyNotFoundException($"Aimlabs user '{user.AimlabsUsername}' not found.");
             user.AimlabsUserId = aimlabsId;
             await userManager.UpdateAsync(user);
         }
 
         var aimlabsUsername = user.AimlabsUsername;
 
-        var rawStats = await aimlabsClient.GetTaskStatsAsync(user.AimlabsUserId, ct);
+        var rawStats = await aimlabsClient.GetTaskStatsAsync(aimlabsId, ct);
 
         var taskStat = rawStats
             .Where(s => s.TaskId == aimlabsTaskId)

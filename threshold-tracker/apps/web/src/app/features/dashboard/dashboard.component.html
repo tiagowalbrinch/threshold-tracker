@@ -7,7 +7,7 @@
       @if (activeTab() === 'my-tasks') {
         Your Aimlabs tasks — set thresholds and track your progress
       } @else {
-        All registered tasks — discover what others are playing
+        Leaderboard — veja quem está se destacando nas tasks
       }
     </p>
 
@@ -22,7 +22,7 @@
         <button (click)="onTabChange('catalog')"
           class="px-5 py-2 rounded-lg text-sm font-medium transition-colors"
           [ngClass]="activeTab() === 'catalog' ? 'bg-violet-600 text-white' : 'text-white/40 hover:text-white/60'">
-          All Tasks
+          Leaderboard
         </button>
       </div>
     }
@@ -78,12 +78,10 @@
           <option value="position_in_rank">Position in Rank</option>
         </select>
 
-        <select [value]="dateRange()" (change)="dateRange.set($any($event.target).value); onApplyFilters()"
-          class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-white text-xs outline-none focus:border-white/20 cursor-pointer [&>option]:bg-[#0f0f17] [&>option]:text-white">
-          @for (opt of dateRangeOptions; track opt.value) {
-            <option [value]="opt.value">{{ opt.label }}</option>
-          }
-        </select>
+        <app-date-range-select
+          [value]="dateRange()"
+          (rangeChange)="dateRange.set($event); onApplyFilters()">
+        </app-date-range-select>
       </div>
     }
 

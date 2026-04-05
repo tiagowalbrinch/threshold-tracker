@@ -1,0 +1,293 @@
+{
+  "info": {
+    "name": "ThresholdTracker API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "token",   "value": "" },
+    { "key": "taskId",  "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123!\",\n  \"display_name\": \"Test User\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.token) pm.collectionVariables.set('token', json.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123!\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/profile"
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/profile",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"display_name\": \"My Name\",\n  \"aimlabs_username\": \"myAimlabsNick\",\n  \"default_sensitivity\": \"0.3\",\n  \"default_fov\": 103,\n  \"default_dpi\": 800\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sync",
+      "item": [
+        {
+          "name": "Sync All Tasks",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/sync"
+          }
+        },
+        {
+          "name": "Sync Plays for Task",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/sync/plays?task_id={{taskId}}",
+              "query": [{ "key": "task_id", "value": "{{taskId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Sync Single Task Stats",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/sync/task/{{taskId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "Get My Tasks",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/tasks?order_by=recently_played",
+              "query": [
+                { "key": "name",         "value": "",                 "disabled": true },
+                { "key": "category",     "value": "tracking",         "disabled": true },
+                { "key": "order_by",     "value": "recently_played" },
+                { "key": "played_from",  "value": "2026-01-01",       "disabled": true },
+                { "key": "played_to",    "value": "2026-12-31",       "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Task by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.aimlabs_task_id) pm.collectionVariables.set('taskId', json.aimlabs_task_id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/tasks/{{taskId}}"
+          }
+        },
+        {
+          "name": "Set Threshold",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/tasks/{{taskId}}/threshold",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": 970,\n  \"autosync_enabled\": false\n}"
+            },
+            "description": "Set threshold manually. Set autosync_enabled=true to recalculate once per day automatically."
+          }
+        },
+        {
+          "name": "Set Threshold with Autosync ON",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/tasks/{{taskId}}/threshold",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": 970,\n  \"autosync_enabled\": true\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Scores",
+      "item": [
+        {
+          "name": "Get Scores for Task",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/scores?task_id={{taskId}}",
+              "query": [
+                { "key": "task_id", "value": "{{taskId}}" },
+                { "key": "from",    "value": "2026-01-01", "disabled": true },
+                { "key": "to",      "value": "2026-12-31", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Scores Paged",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/scores/paged?task_id={{taskId}}&page=1&page_size=25",
+              "query": [
+                { "key": "task_id",   "value": "{{taskId}}" },
+                { "key": "page",      "value": "1" },
+                { "key": "page_size", "value": "25" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Leaderboard",
+      "item": [
+        {
+          "name": "Get Leaderboard (All Time)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/leaderboard?task_id={{taskId}}",
+              "query": [{ "key": "task_id", "value": "{{taskId}}" }]
+            },
+            "description": "Public — no auth required. Returns last_threshold and trend_delta per player."
+          }
+        },
+        {
+          "name": "Get Leaderboard (Last 7 days)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/leaderboard?task_id={{taskId}}&from=2026-03-24",
+              "query": [
+                { "key": "task_id", "value": "{{taskId}}" },
+                { "key": "from",    "value": "2026-03-24" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Leaderboard (Date Range)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/leaderboard?task_id={{taskId}}&from=2026-01-01&to=2026-03-31",
+              "query": [
+                { "key": "task_id", "value": "{{taskId}}" },
+                { "key": "from",    "value": "2026-01-01" },
+                { "key": "to",      "value": "2026-03-31" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalog",
+      "item": [
+        {
+          "name": "Get Catalog (Paginated)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/catalog?order_by=recently_played&page=1&page_size=24",
+              "query": [
+                { "key": "name",      "value": "",               "disabled": true },
+                { "key": "category",  "value": "tracking",       "disabled": true },
+                { "key": "order_by",  "value": "recently_played" },
+                { "key": "page",      "value": "1" },
+                { "key": "page_size", "value": "24" }
+              ]
+            },
+            "description": "Public — no auth required."
+          }
+        },
+        {
+          "name": "Get Catalog Item by Task ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/catalog/{{taskId}}",
+            "description": "Public — returns task name, category, best player, avg score etc."
+          }
+        }
+      ]
+    }
+  ]
+}
