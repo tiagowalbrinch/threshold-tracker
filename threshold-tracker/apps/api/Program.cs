@@ -65,7 +65,25 @@ if (!app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ThresholdTracker.Infrastructure.Persistence.AppDbContext>();
-    await Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.MigrateAsync(db.Database);
+
+    // Neon (serverless Postgres) may be suspended at cold start — retry with backoff.
+    var retries = 5;
+    var delay = TimeSpan.FromSeconds(2);
+    for (var attempt = 1; ; attempt++)
+    {
+        try
+        {
+            await Microsoft.EntityFrameworkCore.RelationalDatabaseFacadeExtensions.MigrateAsync(db.Database);
+            break;
+        }
+        catch (Exception ex) when (attempt < retries)
+        {
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+            logger.LogWarning(ex, "Migration attempt {Attempt}/{Max} failed. Retrying in {Delay}s...", attempt, retries, delay.TotalSeconds);
+            await Task.Delay(delay);
+            delay *= 2;
+        }
+    }
 }
 
 app.UseHttpsRedirection();
