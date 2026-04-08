@@ -207,9 +207,12 @@ public class UserTaskStatService(AppDbContext db, UserManager<ApplicationUser> u
             autosyncEnabled = true;
             lastCalculatedAt = threshold.LastCalculatedAt;
 
-            // Only increase — never decrease
-            if (calculated.HasValue && calculated.Value > threshold.ThresholdValue)
+            var alreadyCalculatedToday = threshold.LastCalculatedAt.HasValue
+                && threshold.LastCalculatedAt.Value.Date == now.Date;
+
+            if (!alreadyCalculatedToday && calculated.HasValue && calculated.Value > threshold.ThresholdValue)
             {
+                // First open of the day — auto-apply
                 await db.UserThresholds
                     .Where(t => t.UserId == userId && t.AimlabsTaskId == aimlabTaskId)
                     .ExecuteUpdateAsync(t => t
@@ -220,7 +223,10 @@ public class UserTaskStatService(AppDbContext db, UserManager<ApplicationUser> u
             }
             else
             {
+                // Already calculated today or no improvement — show as suggestion
                 finalThresholdValue = threshold.ThresholdValue;
+                if (calculated.HasValue && calculated.Value > threshold.ThresholdValue)
+                    suggestedThreshold = calculated.Value;
             }
         }
         else
