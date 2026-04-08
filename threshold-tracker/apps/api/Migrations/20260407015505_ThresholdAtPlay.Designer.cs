@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ThresholdTracker.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using ThresholdTracker.Infrastructure.Persistence;
 namespace ThresholdTracker.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260407015505_ThresholdAtPlay")]
+    partial class ThresholdAtPlay
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -194,16 +197,14 @@ namespace ThresholdTracker.Migrations
                         .HasColumnName("played_at");
 
                     b.Property<bool?>("AboveThreshold")
-                        .HasColumnType("boolean")
-                        .HasColumnName("above_threshold");
+                        .HasColumnType("boolean");
 
                     b.Property<int>("Score")
                         .HasColumnType("integer")
                         .HasColumnName("score");
 
                     b.Property<int?>("ThresholdAtPlay")
-                        .HasColumnType("integer")
-                        .HasColumnName("threshold_at_play");
+                        .HasColumnType("integer");
 
                     b.HasKey("AimlabsUsername", "AimlabsTaskId", "PlayedAt");
 

@@ -12,7 +12,8 @@ public record UserTaskStatResponse(
     DateTime SyncedAt,
     double? Last5Avg = null,
     bool AutosyncEnabled = false,
-    DateTime? LastCalculatedAt = null);
+    DateTime? LastCalculatedAt = null,
+    int? SuggestedThreshold = null);
 
 public record ThresholdUpdateRequest(int Value, bool AutosyncEnabled = false);
 

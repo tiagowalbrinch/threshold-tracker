@@ -1,19 +1,15 @@
 import { useState, useEffect } from 'react';
 import { UserTaskStat } from '../models/task';
-import { PlayAttempt } from '../models/score';
-import { calculateThreshold, suggestedWindowSize } from '../utils/threshold';
 
 interface Props {
   task: UserTaskStat;
-  scores: PlayAttempt[];
   onSave: (data: { value: number; autosyncEnabled: boolean }) => void;
 }
 
-export function ThresholdSettings({ task, scores, onSave }: Props) {
+export function ThresholdSettings({ task, onSave }: Props) {
   const [value, setValue] = useState(task.threshold_value?.toString() ?? '');
   const [autosyncEnabled, setAutosyncEnabled] = useState(task.autosync_enabled ?? true);
-  const suggested = scores.length >= 5 ? calculateThreshold(scores) : null;
-  const windowSize = suggestedWindowSize(scores);
+  const suggested = task.suggested_threshold ?? null;
 
   useEffect(() => {
     setValue(task.threshold_value?.toString() ?? '');
@@ -72,7 +68,6 @@ export function ThresholdSettings({ task, scores, onSave }: Props) {
             className="flex items-center gap-2 text-sm text-amber-400/80 hover:text-amber-400 transition-colors"
           >
             💡 Suggested threshold: <strong>{suggested.toLocaleString()}</strong>
-            <span className="text-white/30 ml-1">(last {windowSize} attempts)</span>
           </button>
           <p className="text-white/25 text-xs pl-0.5">
             Best consistent score excluding lucky peaks — what you can repeat with focused effort.
@@ -80,11 +75,6 @@ export function ThresholdSettings({ task, scores, onSave }: Props) {
         </div>
       )}
 
-      {scores.length < 5 && scores.length > 0 && (
-        <p className="text-white/20 text-xs">
-          Record at least 5 scores to receive a threshold suggestion.
-        </p>
-      )}
     </div>
   );
 }

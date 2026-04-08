@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using ThresholdTracker.Application.DTOs;
 using ThresholdTracker.Domain.Entities;
 using ThresholdTracker.Domain.Identity;
@@ -150,12 +151,93 @@ public class UserTaskStatService(AppDbContext db, UserManager<ApplicationUser> u
             .FirstOrDefaultAsync(s => s.AimlabsUsername == aimlabsUsername && s.AimlabsTaskId == aimlabTaskId, ct)
             ?? throw new KeyNotFoundException($"Task '{aimlabTaskId}' not found for this user.");
 
+        // Fetch all scores ordered chronologically for threshold calculation
+        var scoreValues = await db.PlayAttempts
+            .Where(p => p.AimlabsUsername == aimlabsUsername && p.AimlabsTaskId == aimlabTaskId)
+            .OrderBy(p => p.PlayedAt)
+            .Select(p => p.Score)
+            .ToListAsync(ct);
+
+        var calculated = ThresholdCalculator.Calculate(scoreValues);
+
         var threshold = await db.UserThresholds
             .FirstOrDefaultAsync(t => t.UserId == userId && t.AimlabsTaskId == aimlabTaskId, ct);
 
-        return ToResponse(stat, thresholdValue: threshold?.ThresholdValue,
-            autosyncEnabled: threshold?.AutosyncEnabled ?? false,
-            lastCalculatedAt: threshold?.LastCalculatedAt);
+        int? finalThresholdValue;
+        int? suggestedThreshold = null;
+        bool autosyncEnabled;
+        DateTime? lastCalculatedAt;
+        var now = DateTime.UtcNow;
+
+        if (threshold is null)
+        {
+            // No threshold yet — persist the calculated value (or null if not enough data)
+            finalThresholdValue = calculated;
+            autosyncEnabled = true;
+            lastCalculatedAt = calculated.HasValue ? now : null;
+
+            if (calculated.HasValue)
+            {
+                db.UserThresholds.Add(new UserThreshold
+                {
+                    UserId = userId,
+                    AimlabsTaskId = aimlabTaskId,
+                    ThresholdValue = calculated.Value,
+                    AutosyncEnabled = true,
+                    LastCalculatedAt = now
+                });
+                try
+                {
+                    await db.SaveChangesAsync(ct);
+                }
+                catch (DbUpdateException ex)
+                    when (ex.InnerException is PostgresException pg && pg.SqlState == "23505")
+                {
+                    // Concurrent request beat us — read the winner's value
+                    db.ChangeTracker.Clear();
+                    finalThresholdValue = await db.UserThresholds
+                        .Where(t => t.UserId == userId && t.AimlabsTaskId == aimlabTaskId)
+                        .Select(t => (int?)t.ThresholdValue)
+                        .FirstOrDefaultAsync(ct);
+                }
+            }
+        }
+        else if (threshold.AutosyncEnabled)
+        {
+            autosyncEnabled = true;
+            lastCalculatedAt = threshold.LastCalculatedAt;
+
+            // Only increase — never decrease
+            if (calculated.HasValue && calculated.Value > threshold.ThresholdValue)
+            {
+                await db.UserThresholds
+                    .Where(t => t.UserId == userId && t.AimlabsTaskId == aimlabTaskId)
+                    .ExecuteUpdateAsync(t => t
+                        .SetProperty(x => x.ThresholdValue, calculated.Value)
+                        .SetProperty(x => x.LastCalculatedAt, now), ct);
+                finalThresholdValue = calculated.Value;
+                lastCalculatedAt = now;
+            }
+            else
+            {
+                finalThresholdValue = threshold.ThresholdValue;
+            }
+        }
+        else
+        {
+            // Autosync off — return suggestion but don't touch stored value
+            finalThresholdValue = threshold.ThresholdValue;
+            autosyncEnabled = false;
+            lastCalculatedAt = threshold.LastCalculatedAt;
+
+            if (calculated.HasValue && calculated.Value > threshold.ThresholdValue)
+                suggestedThreshold = calculated.Value;
+        }
+
+        return ToResponse(stat, thresholdValue: finalThresholdValue,
+            autosyncEnabled: autosyncEnabled,
+            lastCalculatedAt: lastCalculatedAt,
+            suggestedThreshold: suggestedThreshold);
     }
 
     public async Task<UserTaskStatResponse> SetThresholdAsync(string userId, string aimlabTaskId, int value, bool autosyncEnabled = false, CancellationToken ct = default)
@@ -308,7 +390,7 @@ public class UserTaskStatService(AppDbContext db, UserManager<ApplicationUser> u
 
         return await query
             .OrderBy(p => p.PlayedAt)
-            .Select(p => new PlayAttemptResponse(p.AimlabsTaskId, p.Score, p.PlayedAt))
+            .Select(p => new PlayAttemptResponse(p.AimlabsTaskId, p.Score, p.PlayedAt, p.ThresholdAtPlay, p.AboveThreshold))
             .ToListAsync(ct);
     }
 
@@ -331,7 +413,7 @@ public class UserTaskStatService(AppDbContext db, UserManager<ApplicationUser> u
             .OrderByDescending(p => p.PlayedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(p => new PlayAttemptResponse(p.AimlabsTaskId, p.Score, p.PlayedAt))
+            .Select(p => new PlayAttemptResponse(p.AimlabsTaskId, p.Score, p.PlayedAt, p.ThresholdAtPlay, p.AboveThreshold))
             .ToListAsync(ct);
 
         return new PagedResponse<PlayAttemptResponse>(items, total, page, pageSize);
@@ -347,7 +429,8 @@ public class UserTaskStatService(AppDbContext db, UserManager<ApplicationUser> u
     }
 
     private static UserTaskStatResponse ToResponse(UserTaskStat s, double? last5Avg = null, int? thresholdValue = null,
-        bool autosyncEnabled = false, DateTime? lastCalculatedAt = null) =>
+        bool autosyncEnabled = false, DateTime? lastCalculatedAt = null, int? suggestedThreshold = null) =>
         new(s.AimlabsTaskId, s.TaskName, s.Category, s.PersonalBest, s.PlayCount, s.AvgScore,
-            s.LastPlayedAt, thresholdValue, s.SyncedAt, last5Avg, autosyncEnabled, lastCalculatedAt);
+            s.LastPlayedAt, thresholdValue, s.SyncedAt, last5Avg, autosyncEnabled, lastCalculatedAt, suggestedThreshold);
+
 }

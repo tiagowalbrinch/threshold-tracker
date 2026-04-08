@@ -9,6 +9,11 @@ interface Props {
 
 const PAGE_SIZE = 25;
 
+function isAbove(s: PlayAttempt, threshold: number): boolean {
+  if (s.above_threshold != null) return s.above_threshold;
+  return threshold > 0 && s.score >= threshold;
+}
+
 export function ScoreHistoryTable({ scores, threshold }: Props) {
   const [page, setPage] = useState(1);
 
@@ -43,6 +48,7 @@ export function ScoreHistoryTable({ scores, threshold }: Props) {
               <th className="text-left py-3 px-4 font-medium">#</th>
               <th className="text-left py-3 px-4 font-medium">Score</th>
               {threshold > 0 && <th className="text-center py-3 px-2 font-medium">THR</th>}
+              {threshold > 0 && <th className="text-right py-3 px-4 font-medium">Goal</th>}
               <th className="text-left py-3 px-4 font-medium">Date</th>
             </tr>
           </thead>
@@ -50,15 +56,22 @@ export function ScoreHistoryTable({ scores, threshold }: Props) {
             {pagedScores.map((s, i) => (
               <tr
                 key={s.played_at + i}
-                className={`border-b border-white/5 hover:bg-white/[0.02] transition-colors ${threshold > 0 && s.score >= threshold ? 'text-violet-400' : ''}`}
+                className={`border-b border-white/5 hover:bg-white/[0.02] transition-colors ${isAbove(s, threshold) ? 'text-violet-400' : ''}`}
               >
                 <td className="py-3 px-4 text-white/30">{totalCount - firstItem - i + 1}</td>
                 <td className="py-3 px-4 font-medium">{s.score.toLocaleString()}</td>
                 {threshold > 0 && (
                   <td className="py-3 px-2 text-center text-base leading-none">
-                    {s.score >= threshold
+                    {isAbove(s, threshold)
                       ? <span className="text-emerald-400">✓</span>
                       : <span className="text-white/20">✗</span>}
+                  </td>
+                )}
+                {threshold > 0 && (
+                  <td className="py-3 px-4 text-right tabular-nums">
+                    {s.threshold_at_play != null
+                      ? <span className="text-white/40">{s.threshold_at_play.toLocaleString()}</span>
+                      : <span className="text-white/15">—</span>}
                   </td>
                 )}
                 <td className="py-3 px-4 text-white/40">{format(new Date(s.played_at), 'dd/MM/yyyy HH:mm')}</td>

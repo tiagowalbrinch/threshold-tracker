@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { UserTaskStat } from '../models/task';
 import { categoryColorClass, categoryTextColor } from '../utils/categoryColors';
 
@@ -14,9 +14,10 @@ export function TaskCard({ task }: { task: UserTaskStat }) {
   const colorClass = categoryColorClass(task.category);
   const textColor = categoryTextColor(task.category);
   const trend = getTrend(task);
+  const location = useLocation();
 
   return (
-    <Link to={`/task/${task.aimlabs_task_id}`}>
+    <Link to={`/task/${task.aimlabs_task_id}`} state={{ from: location.pathname + location.search }}>
       <div className={`group relative bg-gradient-to-br border rounded-2xl p-5 hover:scale-[1.02] transition-all duration-300 cursor-pointer ${colorClass}`}>
         <div className="flex items-start justify-between mb-4">
           <div className={`p-2.5 rounded-xl bg-black/30 ${textColor}`}>

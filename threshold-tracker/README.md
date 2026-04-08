@@ -49,7 +49,7 @@ Railway (PostgreSQL 16)            │  api.aimlab.gg/graphql   │
 |---------|---------|
 | JWT Auth | Register / login, 24h token expiry |
 | Aimlabs sync | Auto-sync on login + periodic every 60s + manual button in profile |
-| Per-user thresholds | Each user sets their own target score per task (`PATCH /tasks/{id}/threshold`) |
+| Per-user thresholds | Threshold is calculated server-side on every `GET /tasks/{id}`. Auto-persisted on first load; auto-updated when autosync is on and score increases; returned as `suggested_threshold` when autosync is off. Threshold never decreases. |
 | Threshold hero card | Task Details shows status badge (above/below), gap message, and last-5-session trend |
 | Score chart | Individual play attempts from Aimlabs, date-range filter, threshold reference line |
 | Dashboard trends | Each task card shows ↑/↓/— trend based on last 5 plays vs overall average |
@@ -123,7 +123,7 @@ npm start
 | PATCH | `/profile` | ✓ | Update profile (incl. `aimlabs_username`) |
 | POST | `/sync` | ✓ | Pull all tasks from Aimlabs, upsert cache |
 | GET | `/tasks` | ✓ | Synced tasks for current user (filters: name, category, order_by, played_from, played_to) |
-| GET | `/tasks/{taskId}` | ✓ | Single task stat |
+| GET | `/tasks/{taskId}` | ✓ | Single task stat — calculates threshold server-side; auto-persists/updates if autosync on; returns `suggested_threshold` if autosync off |
 | PATCH | `/tasks/{taskId}/threshold` | ✓ | Set personal threshold for a task |
 | GET | `/scores?task_id=&from=&to=` | ✓ | Individual play attempts (proxied from Aimlabs) |
 | GET | `/scores/paged?task_id=&page=&page_size=` | ✓ | Paginated play attempts (desc) |

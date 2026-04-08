@@ -56,6 +56,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.AimlabsTaskId).HasColumnName("aimlabs_task_id");
             entity.Property(e => e.Score).HasColumnName("score");
             entity.Property(e => e.PlayedAt).HasColumnName("played_at");
+            entity.Property(e => e.ThresholdAtPlay).HasColumnName("threshold_at_play");
+            entity.Property(e => e.AboveThreshold).HasColumnName("above_threshold");
             entity.HasIndex(e => new { e.AimlabsUsername, e.AimlabsTaskId })
                 .HasDatabaseName("idx_play_attempts_user_task");
         });

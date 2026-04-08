@@ -1,5 +1,5 @@
-import { useRef, useMemo } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useMemo } from 'react';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getTask, setTaskThreshold } from '../../api/tasks';
 import { getScores } from '../../api/scores';
@@ -12,12 +12,12 @@ import { ScoreHistoryTable } from '../../components/ScoreHistoryTable';
 import { StatsOverview } from '../../components/StatsOverview';
 import { DateRangeSelect } from '../../components/DateRangeSelect';
 import { dateRangeToParams } from '../../utils/dateRange';
-import { calculateThreshold, shouldRecalculateToday } from '../../utils/threshold';
-import { useEffect } from 'react';
 
 export function TaskDetailsLogged() {
   const { id: taskId = '' } = useParams();
   const navigate = useNavigate();
+  const { state } = useLocation() as { state?: { from?: string } };
+  const backTo = state?.from ?? '/dashboard';
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [showLeaderboard, setShowLeaderboard] = [
@@ -36,8 +36,6 @@ export function TaskDetailsLogged() {
     else next.delete('range');
     return next;
   }, { replace: true });
-
-  const autoThresholdApplied = useRef(false);
 
   // Queries
   const { data: task, isLoading: loadingTask } = useQuery({
@@ -77,20 +75,6 @@ export function TaskDetailsLogged() {
     mutationFn: () => syncTask(taskId),
     onSuccess: updated => queryClient.setQueryData(['task', taskId], updated),
   });
-
-  // Auto-threshold logic
-  useEffect(() => {
-    if (!task || loading || autoThresholdApplied.current || scores.length < 5) return;
-    if (!task.threshold_value) {
-      autoThresholdApplied.current = true;
-      const suggested = calculateThreshold(scores);
-      if (suggested) setThresholdMutation.mutate({ value: suggested, autosyncEnabled: true });
-    } else if (task.autosync_enabled && shouldRecalculateToday(task.last_calculated_at)) {
-      autoThresholdApplied.current = true;
-      const recalculated = calculateThreshold(scores);
-      if (recalculated) setThresholdMutation.mutate({ value: recalculated, autosyncEnabled: true });
-    }
-  }, [loading, task?.aimlabs_task_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const latestScore = useMemo(() =>
     scores.length > 0 ? scores[scores.length - 1].score : 0,
@@ -151,7 +135,7 @@ export function TaskDetailsLogged() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
-          <Link to="/dashboard" className="p-2 text-white/40 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+          <Link to={backTo} className="p-2 text-white/40 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
             </svg>
@@ -192,7 +176,6 @@ export function TaskDetailsLogged() {
         <div className="mt-5 pt-5 border-t border-white/5">
           <ThresholdSettings
             task={task}
-            scores={scores}
             onSave={({ value, autosyncEnabled }) => setThresholdMutation.mutate({ value, autosyncEnabled })}
           />
         </div>

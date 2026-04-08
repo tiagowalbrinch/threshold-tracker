@@ -143,6 +143,37 @@ public class SyncService(
             .ToListAsync(ct))
             .ToHashSet();
 
+        var currentThreshold = await db.UserThresholds
+            .Where(t => t.UserId == userId && t.AimlabsTaskId == aimlabsTaskId)
+            .Select(t => (int?)t.ThresholdValue)
+            .FirstOrDefaultAsync(ct);
+
+        // If no threshold record exists yet (race with GetTaskAsync on first page load),
+        // calculate from stored plays so new plays are still annotated correctly.
+        if (!currentThreshold.HasValue)
+        {
+            var storedScores = await db.PlayAttempts
+                .Where(p => p.AimlabsUsername == aimlabsUsername && p.AimlabsTaskId == aimlabsTaskId)
+                .OrderBy(p => p.PlayedAt)
+                .Select(p => p.Score)
+                .ToListAsync(ct);
+            currentThreshold = ThresholdCalculator.Calculate(storedScores);
+        }
+
+        // Backfill existing plays that were synced before this feature was added
+        if (currentThreshold.HasValue)
+        {
+            await db.Database.ExecuteSqlAsync(
+                $"""
+                UPDATE play_attempts
+                SET threshold_at_play = {currentThreshold.Value},
+                    above_threshold    = (score >= {currentThreshold.Value})
+                WHERE aimlabs_username = {aimlabsUsername}
+                  AND aimlabs_task_id  = {aimlabsTaskId}
+                  AND threshold_at_play IS NULL
+                """, ct);
+        }
+
         var toAdd = plays
             .Where(p => !existingTimestamps.Contains(p.PlayedAt))
             .GroupBy(p => p.PlayedAt)          // deduplicate same-timestamp plays from API
@@ -152,7 +183,9 @@ public class SyncService(
                 AimlabsUsername = aimlabsUsername,
                 AimlabsTaskId = aimlabsTaskId,
                 Score = p.Score,
-                PlayedAt = p.PlayedAt
+                PlayedAt = p.PlayedAt,
+                ThresholdAtPlay = currentThreshold,
+                AboveThreshold = currentThreshold.HasValue ? p.Score >= currentThreshold.Value : null
             })
             .ToList();
 

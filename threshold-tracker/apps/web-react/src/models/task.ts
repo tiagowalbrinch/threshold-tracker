@@ -11,6 +11,7 @@ export interface UserTaskStat {
   last5_avg?: number;
   autosync_enabled?: boolean;
   last_calculated_at?: string;
+  suggested_threshold?: number;
 }
 
 export interface TaskCatalogItem {
